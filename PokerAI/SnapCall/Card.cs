@@ -61,8 +61,35 @@ namespace SnapCall
 				default: throw new ArgumentException("Card string suit not valid");
 			}
 		}
-
-		public override string ToString()
+        public Card(int index)
+        {
+            switch (index / 4 + 2)
+            {
+                case 2: this.Rank = Rank.Two; break;
+                case 3: this.Rank = Rank.Three; break;
+                case 4: this.Rank = Rank.Four; break;
+                case 5: this.Rank = Rank.Five; break;
+                case 6: this.Rank = Rank.Six; break;
+                case 7: this.Rank = Rank.Seven; break;
+                case 8: this.Rank = Rank.Eight; break;
+                case 9: this.Rank = Rank.Nine; break;
+                case 10: this.Rank = Rank.Ten; break;
+                case 11: this.Rank = Rank.Jack; break;
+                case 12: this.Rank = Rank.Queen; break;
+                case 13: this.Rank = Rank.King; break;
+                case 14: this.Rank = Rank.Ace; break;
+                default: throw new ArgumentException("Card string rank not valid");
+            }
+            switch (index % 4)
+            {
+                case 0: this.Suit = Suit.Spades; break;
+                case 1: this.Suit = Suit.Hearts; break;
+                case 2: this.Suit = Suit.Diamonds; break;
+                case 3: this.Suit = Suit.Clubs; break;
+                default: throw new ArgumentException("Card string suit not valid");
+            }
+        }
+        public override string ToString()
 		{
 			char[] ranks = "23456789TJQKA".ToCharArray();
 			char[] suits = { '♠', '♥', '♦', '♣' };

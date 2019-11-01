@@ -52,8 +52,19 @@ namespace SnapCall
 			Console.ResetColor();
 			Console.Write(end);
 		}
-
-		public override string ToString()
+        public String GetColoredCards(string end = "")
+        {
+            for (int i = 0; i < Cards.Count; i++)
+            {
+                Card card = Cards.ElementAt(i);
+                Console.ForegroundColor = Card.SuitColors[(int)card.Suit];
+                Console.Write("{0}", card);
+                if (i < Cards.Count - 1) Console.Write(" ");
+            }
+            Console.ResetColor();
+            Console.Write(end);
+        }
+        public override string ToString()
 		{
 			return string.Join(" ", Cards.Select(card => card.ToString()));
 		}

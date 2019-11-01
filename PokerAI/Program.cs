@@ -98,6 +98,7 @@ namespace PokerAI
             Console.WriteLine(sevenCardIndexer.roundSize[0] + " non-isomorphic hands found");
 
             Evaluator evaluator = new Evaluator();
+            OCHS ochsTable = new OCHS(evaluator, privIndexer);
             EHSTable ehsTable = new EHSTable(evaluator, privFlopIndexer,privFlopTurnIndexer);
             EMD emd = new EMD(privIndexer, privFlopIndexer, privFlopTurnIndexer, privFlopTurnRiver);
         }
