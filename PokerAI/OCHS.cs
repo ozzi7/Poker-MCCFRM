@@ -24,8 +24,10 @@ namespace PokerAI
     class OCHS
     {
         int nofOpponentClusters = 8;
-        int nofMonteCarloSimulations = 1000;
+        int histogramSize = 8;
+        int nofMonteCarloSimulations = 10000;
 
+        int[] clusterIndices; // has 169 elements to map each starting hand to a cluster
         float[,] histograms;
         string filenameOppClusters = "OCHSOpponentClusters.txt";
 
@@ -49,11 +51,13 @@ namespace PokerAI
             Console.WriteLine("Generating {0} Opponent Clusters for OCHS using Monte Carlo Sampling...", nofOpponentClusters);
             DateTime start = DateTime.UtcNow;
 
-            histograms = new float[169, 8];
+            histograms = new float[169, histogramSize];
             long sharedLoopCounter = 0;
 
             using (var progress = new ProgressBar())
             {
+                progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / (nofMonteCarloSimulations * 169));
+
                 Parallel.For(0, 169,
                  i =>
                  {
@@ -115,18 +119,18 @@ namespace PokerAI
                              }
                          }
                          float equity = (strength[0] + strength[1] / 2.0f) / (strength[0] + strength[1] + strength[2]);
-                         histograms[i, (Math.Min(7, (int)(equity * (float)nofOpponentClusters)))] += 1;
+                         histograms[i, (Math.Min(histogramSize-1, (int)(equity * (float)histogramSize)))] += 1;
                          deadCardMask = 0L;
 
                          Interlocked.Add(ref sharedLoopCounter, 1);
                          progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / (nofMonteCarloSimulations * 169));
                      }
                      float sum = 0.0f;
-                     for (int k = 0; k < nofOpponentClusters; ++k)
+                     for (int k = 0; k < histogramSize; ++k)
                      {
                          sum += histograms[i, k];
                      }
-                     for (int k = 0; k < nofOpponentClusters; ++k)
+                     for (int k = 0; k < histogramSize; ++k)
                      {
                          histograms[i, k] /= sum;
                      }
@@ -144,15 +148,16 @@ namespace PokerAI
                 hand.Cards.Add(new SnapCall.Card(cardsOutput[1]));
                 hand.PrintColoredCards();
                 Console.Write(": ");
-                for (int j = 0; j < nofOpponentClusters; ++j)
+                for (int j = 0; j < histogramSize; ++j)
                 {
                     Console.Write(histograms[i,j] + " ");
                 }
                 Console.WriteLine();
             }
-            Kmeans kmeans = new Kmeans();
-            int[] indices = kmeans.Cluster(histograms, 8);
 
+            // k-means clustering
+            Kmeans kmeans = new Kmeans();
+            clusterIndices = kmeans.Cluster(histograms, 8);
 
             Console.WriteLine("Created the following cluster for starting hands: ");
             List<SnapCall.Hand> startingHands = SnapCall.Utilities.GetStartingHandChart();
@@ -161,33 +166,29 @@ namespace PokerAI
 
             for (int i = 0; i < 169; ++i)
             {
-                cardsOutput = new int[2];
                 long index = indexer.indexLast(new int[] { startingHands[i].Cards[0].GetIndex(),
                     startingHands[i].Cards[1].GetIndex()});
-                Console.ForegroundColor = consoleColors[indices[index]];
+
+                // test
+                //int[] cards = new int[2];
+                //indexer.unindex(indexer.rounds - 1, index, cards);
+                //Console.WriteLine(cards[0] + " " + cards[1]);
+                Console.ForegroundColor = consoleColors[clusterIndices[index]];
                 Console.Write("X  ");
                 if(i % 13 == 12)
                     Console.WriteLine();
             }
             Console.ResetColor();
             Console.WriteLine();
-            Console.Read();
         }
         public void SaveToFile()
         {
-            Console.WriteLine("Saving table to file EHSTable5Cards.txt");
+            Console.WriteLine("Saving table to file {0}", filenameOppClusters);
 
-            using (var fileStream = File.Create("EHSTable5Cards.txt"))
+            using (var fileStream = File.Create(filenameOppClusters))
             {
                 BinaryFormatter bf = new BinaryFormatter();
-                bf.Serialize(fileStream, histograms);
-            }
-            Console.WriteLine("Saving table to file EHSTable6Cards.txt");
-
-            using (var fileStream = File.Create("EHSTable6Cards.txt"))
-            {
-                BinaryFormatter bf = new BinaryFormatter();
-                bf.Serialize(fileStream, histograms);
+                bf.Serialize(fileStream, clusterIndices);
             }
         }
         private void LoadFromFile(string filename)
@@ -195,7 +196,7 @@ namespace PokerAI
             using (var fileStream = File.OpenRead(filename))
             {
                 var binForm = new BinaryFormatter();
-                histograms = (float[,])binForm.Deserialize(fileStream);
+                clusterIndices = (int[])binForm.Deserialize(fileStream);
             }
         }
     }

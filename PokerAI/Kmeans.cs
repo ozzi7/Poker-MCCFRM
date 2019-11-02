@@ -12,7 +12,7 @@ namespace PokerAI
     /// </summary>
     class Kmeans
     {
-        int nofRuns = 4;
+        int nofRuns = 50;
        
         public Kmeans(){ }
         /// <summary>
@@ -29,7 +29,7 @@ namespace PokerAI
 
             int[] bestCenters = new int[data.GetLength(0)];
             int[] recordCenters = new int[data.GetLength(0)]; // we return indices only because the centers are discarded
-            float recordDistance = float.MaxValue;
+            Int64 recordDistance = Int64.MaxValue;
 
             for (int run = 0; run < nofRuns; ++run)
             {
@@ -138,6 +138,15 @@ namespace PokerAI
                 totalDistance += Math.Abs(emd);
             }
             return totalDistance;
+        }
+        private float GetL2Distance(float[,] data, float[,] centers, int index1, int index2)
+        {
+            double totalDistance = 0;
+            for (int i = 0; i < data.GetLength(1); i++)
+            {
+                totalDistance += Math.Pow(data[index1, i] - centers[index2, i],2);
+            }
+            return (float)Math.Sqrt(totalDistance);
         }
     }
 }

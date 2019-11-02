@@ -87,7 +87,7 @@ namespace SnapCall
                 }
                 string firstCardSuit = "S";
                 string secondCardSuit = "";
-                if(i%13 >= i/13)
+                if(i%13 > i/13)
                 {
                     secondCardSuit = "S";
                 }
