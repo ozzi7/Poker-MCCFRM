@@ -177,6 +177,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Kmeans.cs" />
     <Compile Include="EHSTable.cs" />
     <Compile Include="EMD.cs" />
     <Compile Include="Game\Action.cs" />

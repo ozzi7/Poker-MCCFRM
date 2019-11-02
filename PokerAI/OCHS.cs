@@ -131,20 +131,45 @@ namespace PokerAI
                     }
                 }
             }
-            for(int i = 0; i < 169; ++i)
+
+            Console.WriteLine("Calculated histograms: ");
+            for (int i = 0; i < 169; ++i)
             {
                 cards = new int[2];
                 indexer.unindex(indexer.rounds - 1, i, cards);
                 SnapCall.Hand hand = new SnapCall.Hand();
                 hand.Cards.Add(new SnapCall.Card(cards[0]));
                 hand.Cards.Add(new SnapCall.Card(cards[1]));
-                Console.Write(new SnapCall.Hand(hand.PrintColoredCards() + ": ");
+                hand.PrintColoredCards();
+                Console.Write(": ");
                 for (int j = 0; j < nofOpponentClusters; ++j)
                 {
                     Console.Write(histograms[i,j] + " ");
                 }
                 Console.WriteLine();
             }
+            Kmeans kmeans = new Kmeans();
+            int[] indices = kmeans.Cluster(histograms, 8);
+
+
+            Console.WriteLine("Created the following cluster for starting hands: ");
+            List<SnapCall.Hand> startingHands = SnapCall.Utilities.GetStartingHandChart();
+            ConsoleColor[] consoleColors = { ConsoleColor.Gray, ConsoleColor.Blue, ConsoleColor.Magenta,
+                ConsoleColor.Yellow, ConsoleColor.Green, ConsoleColor.Red, ConsoleColor.Cyan, ConsoleColor.White };
+
+            for (int i = 0; i < 169; ++i)
+            {
+                cards = new int[2];
+                long index = indexer.indexLast(new int[] { startingHands[i].Cards[0].GetIndex(),
+                    startingHands[i].Cards[1].GetIndex()});
+                Console.ForegroundColor = consoleColors[indices[index]];
+                Console.Write("X  ");
+                if(i % 13 == 12)
+                    Console.WriteLine();
+            }
+            Console.ResetColor();
+            Console.WriteLine();
+            Console.Read();
         }
         public void SaveToFile()
         {

@@ -89,6 +89,10 @@ namespace SnapCall
                 default: throw new ArgumentException("Card string suit not valid");
             }
         }
+        public int GetIndex()
+        {
+            return (int)(Rank) * 4 + (int)Suit;
+        }
         public override string ToString()
 		{
 			char[] ranks = "23456789TJQKA".ToCharArray();
