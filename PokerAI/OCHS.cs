@@ -49,7 +49,6 @@ namespace PokerAI
             Console.WriteLine("Generating {0} Opponent Clusters for OCHS using Monte Carlo Sampling...", nofOpponentClusters);
             DateTime start = DateTime.UtcNow;
 
-            long deadCardMask = 0;
             histograms = new float[169, 8];
             long sharedLoopCounter = 0;
 
@@ -58,6 +57,7 @@ namespace PokerAI
                 Parallel.For(0, 169,
                  i =>
                  {
+                     long deadCardMask = 0;
                      for (int steps = 0; steps < nofMonteCarloSimulations; steps++)
                      {
                          int[] cards = new int[2];
