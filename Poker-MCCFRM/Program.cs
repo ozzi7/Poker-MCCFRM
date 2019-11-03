@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SnapCall;
 
-namespace PokerMCCFRM
+namespace Poker_MCCFRM
 {
     class Program
     {
@@ -98,9 +98,9 @@ namespace PokerMCCFRM
             Console.WriteLine(sevenCardIndexer.roundSize[0] + " non-isomorphic hands found");
 
             Evaluator evaluator = new Evaluator();
-            OCHS OCHSTable = new OCHS(evaluator, privIndexer, sevenCardIndexer);
-            EHSTable ehsTable = new EHSTable(evaluator, privFlopIndexer,privFlopTurnIndexer);
-            EMD emd = new EMD(privIndexer, privFlopIndexer, privFlopTurnIndexer, privFlopTurnRiver);
+            OCHS OCHSTable = new OCHS(evaluator, privIndexer, privFlopTurnRiver);
+            EMDTable EMDTable = new EMDTable(OCHSTable, privIndexer, privFlopIndexer, privFlopTurnIndexer, privFlopTurnRiver);
+            EHSTable EHSTable = new EHSTable(evaluator, privFlopIndexer, privFlopTurnIndexer);
         }
         private static void Train()
         {

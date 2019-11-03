@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PokerMCCFRM
+namespace Poker_MCCFRM
 {
     public static class Global
     {

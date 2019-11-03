@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace PokerMCCFRM
+namespace Poker_MCCFRM
 {
     public static class Util
     {

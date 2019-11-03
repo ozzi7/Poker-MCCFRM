@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace PokerMCCFRM
+namespace Poker_MCCFRM
 {
     /// <summary>
     /// the most enjoyable class to program, evaluate the best 5 cards out of 7 cards

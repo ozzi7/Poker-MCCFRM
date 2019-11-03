@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace PokerMCCFRM
+namespace Poker_MCCFRM
 {
     /// <summary>
     /// standard fair deck of 52 cards

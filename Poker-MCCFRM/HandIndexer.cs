@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Numerics;
 
-namespace PokerMCCFRM
+namespace Poker_MCCFRM
 {
     public class HandIndexerState
     {

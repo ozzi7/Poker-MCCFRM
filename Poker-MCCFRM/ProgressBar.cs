@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PokerMCCFRM
+namespace Poker_MCCFRM
 {
     /// <summary>
     /// An ASCII progress bar

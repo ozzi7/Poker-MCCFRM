@@ -1,4 +1,4 @@
-﻿namespace PokerMCCFRM
+﻿namespace Poker_MCCFRM
 {
     using System.Collections.Generic;
     using System.Linq;

@@ -3,7 +3,7 @@
 //using System.Linq;
 //using System.Text;
 
-//namespace PokerMCCFRM
+//namespace Poker_MCCFRM
 //{
 //    /// <summary>
 //    /// this class controls the main activities of the poker game, such as dealer position,

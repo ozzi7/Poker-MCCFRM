@@ -5,14 +5,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PokerMCCFRM
+namespace Poker_MCCFRM
 {
     /// <summary>
     /// Cluster the elements in the input array into k distinct buckets and return them 
     /// </summary>
     class Kmeans
     {
-        int nofRuns = 50;
+        int nofRuns = 4;
        
         public Kmeans(){ }
         /// <summary>
@@ -21,7 +21,7 @@ namespace PokerMCCFRM
         /// <param name="data"></param>
         /// <param name="k"></param>
         /// <returns></returns>
-        public int[] Cluster(float[,] data, int k)
+        public int[] ClusterEMD(float[,] data, int k)
         {
             Console.WriteLine("K-means clustering {0} elements into {1} clusters with {2} restarts...", data.GetLength(0), k, nofRuns);
 
@@ -29,7 +29,7 @@ namespace PokerMCCFRM
 
             int[] bestCenters = new int[data.GetLength(0)];
             int[] recordCenters = new int[data.GetLength(0)]; // we return indices only because the centers are discarded
-            Int64 recordDistance = Int64.MaxValue;
+            long recordDistance = long.MaxValue;
 
             for (int run = 0; run < nofRuns; ++run)
             {
@@ -49,13 +49,13 @@ namespace PokerMCCFRM
                     centerIndices.Add(index);
                 }
 
-                Int64 lastDistance = 0;
+                long lastDistance = 0;
                 bool distanceChanged = true;
                 while(distanceChanged)
                 {
                     // find closest cluster for each element
                     long sharedLoopCounter = 0;
-                    Int64 totalDistance = 0;
+                    long totalDistance = 0;
                     using (var progress = new ProgressBar())
                     {
                         Parallel.For(0, Global.NOF_THREADS,
@@ -75,13 +75,12 @@ namespace PokerMCCFRM
                                      }
                                  }
                                  bestCenters[j] = bestIndex;
-                                 Interlocked.Add(ref totalDistance, (Int64)(distance * 1000000));
+                                 Interlocked.Add(ref totalDistance, (long)(distance * 1000000));
+                                 Interlocked.Add(ref sharedLoopCounter, 1);
+                                 progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.GetLength(0));
                              }
-                             Interlocked.Add(ref sharedLoopCounter, 1);
-                             progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / (24 * 100));
                          });
                     }
-
 
                     // find new cluster centers // todo: it isnt theoretically sound to take the mean when using EMD distance metric
                     centers = new float[k, data.GetLength(1)];
@@ -136,7 +135,7 @@ namespace PokerMCCFRM
 
             int[] bestCenters = new int[data.GetLength(0)];
             int[] recordCenters = new int[data.GetLength(0)]; // we return indices only because the centers are discarded
-            Int64 recordDistance = Int64.MaxValue;
+            long recordDistance = long.MaxValue;
 
             for (int run = 0; run < nofRuns; ++run)
             {
@@ -156,13 +155,13 @@ namespace PokerMCCFRM
                     centerIndices.Add(index);
                 }
 
-                Int64 lastDistance = 0;
+                long lastDistance = 0;
                 bool distanceChanged = true;
                 while (distanceChanged)
                 {
                     // find closest cluster for each element
                     long sharedLoopCounter = 0;
-                    Int64 totalDistance = 0;
+                    long totalDistance = 0;
                     using (var progress = new ProgressBar())
                     {
                         Parallel.For(0, Global.NOF_THREADS,
@@ -182,7 +181,7 @@ namespace PokerMCCFRM
                                      }
                                  }
                                  bestCenters[j] = bestIndex;
-                                 Interlocked.Add(ref totalDistance, (Int64)(distance * 1000000));
+                                 Interlocked.Add(ref totalDistance, (long)(distance * 1000000));
                                  Interlocked.Add(ref sharedLoopCounter, 1);
                                  progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.GetLength(0));
                              }
@@ -211,6 +210,7 @@ namespace PokerMCCFRM
                     {
                         distanceChanged = false;
                     }
+                    long diff = lastDistance - totalDistance;
                     lastDistance = totalDistance;
 
                     if (totalDistance < recordDistance)
@@ -218,7 +218,8 @@ namespace PokerMCCFRM
                         recordDistance = totalDistance;
                         Array.Copy(bestCenters, recordCenters, recordCenters.Length);
                     }
-                    Console.WriteLine("Current total distance: " + (double)totalDistance / 1000000.0);
+                    Console.WriteLine("Current total distance: {0} Improvement: {1}",(double)totalDistance / 1000000.0,
+                        (double)diff / 1000000.0);
                 }
             }
             Console.WriteLine("Best distance found: " + (double)recordDistance / 1000000.0);

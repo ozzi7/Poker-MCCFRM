@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace PokerMCCFRM
+namespace Poker_MCCFRM
 {
     /// <summary>
     /// a class for a list of cards that forms a player's hand
@@ -322,7 +322,7 @@ namespace PokerMCCFRM
             }
             return a;
         }
-        override public bool Equals(Object o)
+        override public bool Equals(object o)
         {
             throw new NotImplementedException();
         }

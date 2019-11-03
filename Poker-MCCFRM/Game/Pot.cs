@@ -3,7 +3,7 @@
 //using System.Linq;
 //using System.Text;
 
-//namespace PokerMCCFRM
+//namespace Poker_MCCFRM
 //{
 //    public class Pot
 //    {

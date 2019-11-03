@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PokerMCCFRM
+namespace Poker_MCCFRM
 {
     class EHSTable
     {
@@ -20,20 +20,22 @@ namespace PokerMCCFRM
         float[] EHSTurn = new float[13960050];
         float[,] histogramsFlop = new float[1286792, 50];
 
+        int[] flopIndices; // mapping each canonical flop hand (5 cards) to a cluster
+
         public EHSTable(SnapCall.Evaluator evaluator, HandIndexer privFlopIndexer, HandIndexer privFlopTurnIndexer)
         {
             // In essence, go through the 2+3 HandIndexer set and combine with opponent, turn, river
             // 1286792 * 1081*990 = 1 377 111 930 480 combinations
 
-            String fileName = "EHSTable5Cards.txt";
+            string fileName = "EHSTable5Cards.txt";
             if (fileName != null && File.Exists(fileName))
             {
                 if (File.Exists(fileName))
                 {
                     Console.WriteLine("Loading EHS Table 5 Cards from {0}", "EHSTable5Cards.txt");
                     LoadFromFile("EHSTable5Cards.txt");
-                    Console.WriteLine("Loading EHS Table 6 Cards from {0}", "EHSTable5Cards.txt");
-                    LoadFromFile("EHSTable5Cards.txt");
+                    Console.WriteLine("Loading EHS Table 6 Cards from {0}", "EHSTable6Cards.txt");
+                    LoadFromFile("EHSTable6Cards.txt");
                 }
             }
             else
@@ -46,6 +48,37 @@ namespace PokerMCCFRM
             }
             evaluator.Initialize();
             CalculateFlopHistograms(evaluator, privFlopIndexer);
+            ClusterFlop(privFlopIndexer);
+        }
+        private void ClusterFlop(HandIndexer indexerFlop)
+        {
+            //Console.WriteLine("Generating {0} clusters from {1} hands for the Flop, using histograms of length {2}...",
+            //    9000, indexerFlop.roundSize[0], nofOpponentClusters);
+            //// k-means clustering
+            //Kmeans kmeans = new Kmeans();
+            //flopIndices = kmeans.ClusterEMD(histogramsFlop, 9000);
+
+            //for (int i = 0; i < indexerRiver.roundSize[0]; ++i)
+            //{
+            //    if (riverIndices[i] == 0)
+            //    {
+            //        int[] cards = new int[7];
+            //        indexerRiver.unindex(indexerRiver.rounds - 1, i, cards);
+
+            //        SnapCall.Hand hand = new SnapCall.Hand();
+            //        hand.Cards.Add(new SnapCall.Card(cards[0]));
+            //        hand.Cards.Add(new SnapCall.Card(cards[1]));
+            //        hand.Cards.Add(new SnapCall.Card(cards[2]));
+            //        hand.Cards.Add(new SnapCall.Card(cards[3]));
+            //        hand.Cards.Add(new SnapCall.Card(cards[4]));
+            //        hand.Cards.Add(new SnapCall.Card(cards[5]));
+            //        hand.Cards.Add(new SnapCall.Card(cards[6]));
+            //        hand.PrintColoredCards();
+            //        Console.WriteLine();
+            //    }
+            //}
+            //TimeSpan elapsed = DateTime.UtcNow - start;
+            //Console.WriteLine("River clustering completed completed in {0:0.00}s", elapsed.TotalSeconds);
         }
         private void Calculate5Cards(SnapCall.Evaluator evaluator, HandIndexer indexer)
         {

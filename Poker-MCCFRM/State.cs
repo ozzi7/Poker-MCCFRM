@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace PokerMCCFRM
+namespace Poker_MCCFRM
 {
     abstract class State
     {
@@ -42,7 +42,7 @@ namespace PokerMCCFRM
         public int minRaise = Global.BB; // see https://poker.stackexchange.com/questions/2729/what-is-the-min-raise-and-min-reraise-in-holdem-no-limit#targetText=The%20minimum%20raise%20is%20going,blind%20and%20then%20raising%20%242.
         public bool isBettingOpen = false;
 
-        public String infosetString;
+        public string infosetString;
         public List<ACTION> history = new List<ACTION>();
         public List<ACTION> lastActions = new List<ACTION>();
 

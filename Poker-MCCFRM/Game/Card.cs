@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PokerMCCFRM
+namespace Poker_MCCFRM
 {
     public enum RANK
     {
@@ -20,7 +20,7 @@ namespace PokerMCCFRM
     public class Card
     {
         private int rank, suit;
-        private String shortString = "";
+        private string shortString = "";
 
         //default two of diamonds
         public Card()
