@@ -22,7 +22,7 @@ namespace Poker_MCCFRM
 
         int[] flopIndices; // mapping each canonical flop hand (5 cards) to a cluster
 
-        public EHSTable(SnapCall.Evaluator evaluator, HandIndexer privFlopIndexer, HandIndexer privFlopTurnIndexer)
+        public EHSTable(Evaluator evaluator, HandIndexer privFlopIndexer, HandIndexer privFlopTurnIndexer)
         {
             // In essence, go through the 2+3 HandIndexer set and combine with opponent, turn, river
             // 1286792 * 1081*990 = 1 377 111 930 480 combinations
@@ -65,14 +65,14 @@ namespace Poker_MCCFRM
             //        int[] cards = new int[7];
             //        indexerRiver.unindex(indexerRiver.rounds - 1, i, cards);
 
-            //        SnapCall.Hand hand = new SnapCall.Hand();
-            //        hand.Cards.Add(new SnapCall.Card(cards[0]));
-            //        hand.Cards.Add(new SnapCall.Card(cards[1]));
-            //        hand.Cards.Add(new SnapCall.Card(cards[2]));
-            //        hand.Cards.Add(new SnapCall.Card(cards[3]));
-            //        hand.Cards.Add(new SnapCall.Card(cards[4]));
-            //        hand.Cards.Add(new SnapCall.Card(cards[5]));
-            //        hand.Cards.Add(new SnapCall.Card(cards[6]));
+            //        Poker_MCCFRM.Hand hand = new Poker_MCCFRM.Hand();
+            //        hand.Cards.Add(new Poker_MCCFRM.Card(cards[0]));
+            //        hand.Cards.Add(new Poker_MCCFRM.Card(cards[1]));
+            //        hand.Cards.Add(new Poker_MCCFRM.Card(cards[2]));
+            //        hand.Cards.Add(new Poker_MCCFRM.Card(cards[3]));
+            //        hand.Cards.Add(new Poker_MCCFRM.Card(cards[4]));
+            //        hand.Cards.Add(new Poker_MCCFRM.Card(cards[5]));
+            //        hand.Cards.Add(new Poker_MCCFRM.Card(cards[6]));
             //        hand.PrintColoredCards();
             //        Console.WriteLine();
             //    }
@@ -80,7 +80,7 @@ namespace Poker_MCCFRM
             //TimeSpan elapsed = DateTime.UtcNow - start;
             //Console.WriteLine("River clustering completed completed in {0:0.00}s", elapsed.TotalSeconds);
         }
-        private void Calculate5Cards(SnapCall.Evaluator evaluator, HandIndexer indexer)
+        private void Calculate5Cards(Evaluator evaluator, HandIndexer indexer)
         {
             Console.WriteLine("Calculating Effective Hand Strength Table For 2 + 3 (1286792)");
             int[] cards = new int[5];
@@ -166,7 +166,7 @@ namespace Poker_MCCFRM
                 progress.Report((double)(i + 1) / 1286792);
             }
         }
-        private void Calculate6Cards(SnapCall.Evaluator evaluator, HandIndexer indexer)
+        private void Calculate6Cards(Evaluator evaluator, HandIndexer indexer)
         {
             Console.WriteLine("Calculating Effective Hand Strength Table For 2 + 4 (13960050)");
             int[] cards = new int[6];
@@ -252,7 +252,7 @@ namespace Poker_MCCFRM
                 progress.Report((double)(i + 1) / 13960050);
             }
         }
-        private void CalculateFlopHistograms(SnapCall.Evaluator evaluator, HandIndexer indexer)
+        private void CalculateFlopHistograms(Evaluator evaluator, HandIndexer indexer)
         {
             Console.WriteLine("Calculating Histograms for flop");
 

@@ -6,198 +6,110 @@ using System.Threading.Tasks;
 
 namespace Poker_MCCFRM
 {
-    public enum RANK
-    {
-        TWO = 2, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, JACK, QUEEN, KING, ACE
-    }
-    public enum SUIT
-    {
-        DIAMONDS = 1,
-        CLUBS,
-        HEARTS,
-        SPADES
-    }
-    public class Card
-    {
-        private int rank, suit;
-        private string shortString = "";
+	using Enums;
 
-        //default two of diamonds
-        public Card()
-        {
-            rank = (int)RANK.TWO;
-            suit = (int)SUIT.DIAMONDS;
-            shortString = rankToStringShort(rank) + suitToStringShort(suit);
-        }
-        public Card(RANK rank, SUIT suit)
-        {
-            this.rank = (int)rank;
-            this.suit = (int)suit;
-            shortString = rankToStringShort(this.rank) + suitToStringShort(this.suit);
-        }
-        public Card(int rank, int suit)
-        {
-            if (rank < 2 || rank > 14 || suit < 1 || suit > 4)
-                throw new ArgumentOutOfRangeException();
-            this.rank = rank;
-            this.suit = suit;
-            shortString = rankToStringShort(rank) + suitToStringShort(suit);
-        }
-        public Card(Card card)
-        {
-            this.rank = card.rank;
-            this.suit = card.suit;
-        }
-        public static string rankToString(int rank)
-        {
-            switch (rank)
-            {
-                case 11:
-                    return "Jack";
-                case 12:
-                    return "Queen";
-                case 13:
-                    return "King";
-                case 14:
-                    return "Ace";
-                default:
-                    return rank.ToString();
-            }
-        }
-        public static string rankToStringShort(int rank)
-        {
-            switch (rank)
-            {
-                case 10:
-                    return "T";
-                case 11:
-                    return "J";
-                case 12:
-                    return "Q";
-                case 13:
-                    return "K";
-                case 14:
-                    return "A";
-                default:
-                    return rank.ToString();
-            }
-        }
-        public static string suitToString(int suit)
-        {
-            switch (suit)
-            {
-                case 1:
-                    return "Diamonds";
-                case 2:
-                    return "Clubs";
-                case 3:
-                    return "Hearts";
-                default:
-                    return "Spades";
-            }
-        }
-        public static string suitToStringShort(int suit)
-        {
-            switch (suit)
-            {
-                case 1:
-                    return "d";
-                case 2:
-                    return "c";
-                case 3:
-                    return "h";
-                default:
-                    return "s";
-            }
-        }
-        public int getRank()
-        {
-            return rank;
-        }
-        public int getSuit()
-        {
-            return suit;
-        }
+	public class Card
+    {
+		public static ConsoleColor[] SuitColors = { ConsoleColor.Green, ConsoleColor.Red, ConsoleColor.Cyan, ConsoleColor.White };
 
-        public void setRank(RANK rank)
+		public Rank Rank { get; set; }
+		public Suit Suit { get; set; }
+
+		private static int[] rankPrimes = new int[] { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41 };
+		private static int[] suitPrimes = new int[] { 43, 47, 53, 59 };
+
+		public int PrimeRank { get { return rankPrimes[(int)Rank]; } }
+		public int PrimeSuit { get { return suitPrimes[(int)Suit]; } }
+
+		public bool Equals(Card other)
+		{
+			return this.Rank == other.Rank && this.Suit == other.Suit;
+		}
+
+		public int GetHashCode(Card c)
+		{
+			return c.PrimeRank * c.PrimeSuit;
+		}
+
+		public Card(string s)
+		{
+			var chars = s.ToUpper().ToCharArray();
+			if (chars.Length != 2) throw new ArgumentException("Card string must be length 2");
+			switch (chars[0])
+			{
+				case '2': this.Rank = Rank.Two; break;
+				case '3': this.Rank = Rank.Three; break;
+				case '4': this.Rank = Rank.Four; break;
+				case '5': this.Rank = Rank.Five; break;
+				case '6': this.Rank = Rank.Six; break;
+				case '7': this.Rank = Rank.Seven; break;
+				case '8': this.Rank = Rank.Eight; break;
+				case '9': this.Rank = Rank.Nine; break;
+				case 'T': this.Rank = Rank.Ten; break;
+				case 'J': this.Rank = Rank.Jack; break;
+				case 'Q': this.Rank = Rank.Queen; break;
+				case 'K': this.Rank = Rank.King; break;
+				case 'A': this.Rank = Rank.Ace; break;
+				default: throw new ArgumentException("Card string rank not valid");
+			}
+			switch (chars[1])
+			{
+				case 'S': this.Suit = Suit.Spades; break;
+				case 'H': this.Suit = Suit.Hearts; break;
+				case 'D': this.Suit = Suit.Diamonds; break;
+				case 'C': this.Suit = Suit.Clubs; break;
+                case 's': this.Suit = Suit.Spades; break;
+                case 'h': this.Suit = Suit.Hearts; break;
+                case 'd': this.Suit = Suit.Diamonds; break;
+                case 'c': this.Suit = Suit.Clubs; break;
+                default: throw new ArgumentException("Card string suit not valid");
+			}
+		}
+        public Card(int index)
         {
-            this.rank = (int)rank;
+            switch (index / 4 + 2)
+            {
+                case 2: this.Rank = Rank.Two; break;
+                case 3: this.Rank = Rank.Three; break;
+                case 4: this.Rank = Rank.Four; break;
+                case 5: this.Rank = Rank.Five; break;
+                case 6: this.Rank = Rank.Six; break;
+                case 7: this.Rank = Rank.Seven; break;
+                case 8: this.Rank = Rank.Eight; break;
+                case 9: this.Rank = Rank.Nine; break;
+                case 10: this.Rank = Rank.Ten; break;
+                case 11: this.Rank = Rank.Jack; break;
+                case 12: this.Rank = Rank.Queen; break;
+                case 13: this.Rank = Rank.King; break;
+                case 14: this.Rank = Rank.Ace; break;
+                default: throw new ArgumentException("Card string rank not valid");
+            }
+            switch (index % 4)
+            {
+                case 0: this.Suit = Suit.Spades; break;
+                case 1: this.Suit = Suit.Hearts; break;
+                case 2: this.Suit = Suit.Diamonds; break;
+                case 3: this.Suit = Suit.Clubs; break;
+                default: throw new ArgumentException("Card string suit not valid");
+            }
         }
-        public void setCard(RANK rank, SUIT suit)
+        public Card(ulong bit) : this((int)Math.Log2(bit)+1)
         {
-            this.rank = (int)rank;
-            this.suit = (int)suit;
         }
-        public void setCard(int rank, int suit)
+        public int GetIndex()
         {
-            if (rank < 1 || rank > 14 || suit < 1 || suit > 4)
-                throw new ArgumentOutOfRangeException();
-            this.rank = rank;
-            this.suit = suit;
+            return (int)(Rank) * 4 + (int)Suit;
+        }
+        public ulong GetBit()
+        {
+            return 1ul << GetIndex();
         }
         public override string ToString()
-        {
-            return rankToString(rank) + " of " + suitToString(suit);
-        }
-        public string ToStringShort()
-        {
-            return shortString;
-        }
-        //compare rank of cards
-        //public static bool operator ==(Card a, Card b)
-        //{
-        //    if (a.rank == b.rank)
-        //        return true;
-        //    else
-        //        return false;
-        //}
-        //public static bool operator !=(Card a, Card b)
-        //{
-        //    if (a.rank != b.rank)
-        //        return true;
-        //    else
-        //        return false;
-        //}
-        public static bool operator <(Card a, Card b)
-        {
-            if (a.rank < b.rank)
-                return true;
-            else
-                return false;
-        }
-        public static bool operator >(Card a, Card b)
-        {
-            if (a.rank > b.rank)
-                return true;
-            else
-                return false;
-        }
-        public static bool operator <=(Card a, Card b)
-        {
-            if (a.rank <= b.rank)
-                return true;
-            else
-                return false;
-        }
-        public static bool operator >=(Card a, Card b)
-        {
-            if (a.rank >= b.rank)
-                return true;
-            else
-                return false;
-        }
-        public override bool Equals(object obj)
-        {
-            var anotherCard = obj as Card;
-            return anotherCard != null && this.Equals(anotherCard);
-        }
-        private bool Equals(Card other)
-        {
-            return this.suit == other.suit && this.rank == other.rank;
-        }
-        override public int GetHashCode()
-        {
-            throw new NotImplementedException();
-        }
-    }
+		{
+			char[] ranks = "23456789TJQKA".ToCharArray();
+			char[] suits = { '♠', '♥', '♦', '♣' };
+
+            return ranks[(int)Rank].ToString();// + suits[(int)Suit].ToString();
+		}
+	}
 }

@@ -1,4 +1,4 @@
-﻿namespace SnapCall.Enums
+﻿namespace Poker_MCCFRM.Enums
 {
 	public enum Suit
 	{

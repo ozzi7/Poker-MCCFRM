@@ -316,11 +316,11 @@ namespace Poker_MCCFRM
                     {
                         if (i + 3 < SUITS && equal[equalIndex,i + 3])
                         {
-                            swap(suitIndex, i, i + 1);
-                            swap(suitIndex, i + 2, i + 3);
-                            swap(suitIndex, i, i + 2);
-                            swap(suitIndex, i + 1, i + 3);
-                            swap(suitIndex, i + 1, i + 2);
+                            Swap(suitIndex, i, i + 1);
+                            Swap(suitIndex, i + 2, i + 3);
+                            Swap(suitIndex, i, i + 2);
+                            Swap(suitIndex, i + 1, i + 3);
+                            Swap(suitIndex, i + 1, i + 2);
                             part = suitIndex[i]
                                 + nCrGroups[suitIndex[i + 1] + 1,2]
                                 + nCrGroups[suitIndex[i + 2] + 2,3]
@@ -330,9 +330,9 @@ namespace Poker_MCCFRM
                         }
                         else
                         {
-                            swap(suitIndex, i, i + 1);
-                            swap(suitIndex, i, i + 2);
-                            swap(suitIndex, i + 1, i + 2);
+                            Swap(suitIndex, i, i + 1);
+                            Swap(suitIndex, i, i + 2);
+                            Swap(suitIndex, i + 1, i + 2);
                             part = suitIndex[i] + nCrGroups[suitIndex[i + 1] + 1,2]
                                 + nCrGroups[suitIndex[i + 2] + 2,3];
                             size = nCrGroups[suitMultiplier[i] + 2,3];
@@ -341,7 +341,7 @@ namespace Poker_MCCFRM
                     }
                     else
                     {
-                        swap(suitIndex, i, i + 1);
+                        Swap(suitIndex, i, i + 1);
                         part = suitIndex[i] + nCrGroups[suitIndex[i + 1] + 1,2];
                         size = nCrGroups[suitMultiplier[i] + 1,2];
                         i += 2;
@@ -472,7 +472,7 @@ namespace Poker_MCCFRM
             return true;
         }
 
-        private void swap(int[] suitIndex, int u, int v)
+        private void Swap(int[] suitIndex, int u, int v)
         {
             if (suitIndex[u] > suitIndex[v])
             {

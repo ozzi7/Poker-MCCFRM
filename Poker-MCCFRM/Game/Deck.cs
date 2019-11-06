@@ -2,52 +2,54 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Poker_MCCFRM
 {
-    /// <summary>
-    /// standard fair deck of 52 cards
-    /// </summary>
-    public class Deck
-    {
-        private List<Card> deck = new List<Card>();
+	public class Deck
+	{
+		private ulong[] cards;
+		private ulong removedCards;
+		private int position;
 
-        public void Create()
-        {
-            for (int i = 2; i <= 14; i++)
+		// TODO: this metric doesn't account for removed cards
+		public int CardsRemaining {
+            get { return 52 - position; } }
+
+		public Deck(ulong removedCards = 0)
+		{
+			this.removedCards = removedCards;
+			cards = new ulong[52];
+			for (int i = 0; i < 52; i++) cards[i] = 1ul << i;
+			position = 0;
+		}
+
+		public void Shuffle(int from = 0)
+		{
+            for (int i = from; i < 52 - 1; i++) // from =position maybe
             {
-                for (int j = 1; j <= 4; j++)
-                {
-                    deck.Add(new Card(i, j));
-                }
+                int n = RandomGen.Next(position, 52);
+                ulong temp = cards[i]; // could skip if n == i
+                cards[i] = cards[n];
+                cards[n] = temp;
             }
         }
-        public void Shuffle(int startIndex = 0)
+
+        public ulong Draw_(int count)
+		{
+			ulong hand = 0;
+			for (int i = 0; i < count; i++)
+			{
+				while ((cards[position] & removedCards) != 0) position++;
+				hand |= cards[position];
+				position++;
+			}
+			return hand;
+		}
+        public ulong Draw(int position)
         {
-            for (int i = startIndex; i < 52 - 1; i++)
-            {
-                int n = RandomGen.Next(i, 52);
-                Card temp = deck[i]; // could skip if n == i
-                deck[i] = deck[n];
-                deck[n] = temp;
-            }
-        }
-        public string Print()
-        {
-            string output = "";
-            foreach (Card card in deck)
-            {
-                output += card.ToString() + " ";
-            }
-            return output;
-        }
-        public Card Deal(int cardIndex)
-        {
-            return deck.ElementAt(cardIndex);
-        }
-        public List<Card> ToList()
-        {
-            return deck;
+            position++;
+            return cards[position];
         }
     }
 }

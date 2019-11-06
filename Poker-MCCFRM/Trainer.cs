@@ -12,7 +12,7 @@ namespace Poker_MCCFRM
 
         public Trainer()
         {
-            Global.Deck.Value.Create();
+            Global.Deck.Value = new Deck();
             rootState = new ChanceState();
         }
         /// <summary>
@@ -166,8 +166,8 @@ namespace Poker_MCCFRM
             {
                 //if (iteration % 10000 == 0)
                 //{
-                //    Console.WriteLine(gs.playerCards[0].Item1.ToStringShort() + "" + gs.playerCards[0].Item2.ToStringShort() + ", " +
-                //        gs.playerCards[1].Item1.ToStringShort() + "" + gs.playerCards[1].Item2.ToStringShort());
+                //    Console.WriteLine(gs.playerCards[0].Item1.ToString() + "" + gs.playerCards[0].Item2.ToString() + ", " +
+                //        gs.playerCards[1].Item1.ToString() + "" + gs.playerCards[1].Item2.ToString());
                 //    Console.WriteLine(string.Join(",", gs.history.ToArray()));
                 //    Console.WriteLine(gs.GetReward(0)+ ", " + gs.GetReward(1));
                 //    Console.WriteLine();
@@ -262,8 +262,8 @@ namespace Poker_MCCFRM
                 //List<float> sigma = infoset.CalculateStrategy();
                 List<float> phi = infoset.GetFinalStrategy();
 
-                Console.Write(ps.playerCards[ps.playerToMove].Item1.ToStringShort() +
-                    ps.playerCards[ps.playerToMove].Item2.ToStringShort() + " ");
+                Console.Write(new Card(ps.playerCards[ps.playerToMove].Item1).ToString() +
+                    ps.playerCards[ps.playerToMove].Item2.ToString() + " ");
                 List<ACTION> actions = ps.GetValidActions();
 
                 for (int j = 0; j < actions.Count(); ++j)

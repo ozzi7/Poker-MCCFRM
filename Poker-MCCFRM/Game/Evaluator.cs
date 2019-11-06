@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
-using PokerMCCFRM;
 
-namespace SnapCall
+namespace Poker_MCCFRM
 {
-	using System.IO;
-    using System.Runtime.Serialization.Formatters.Binary;
-
     public class Evaluator
 	{
         private bool loaded = false;
@@ -23,7 +21,7 @@ namespace SnapCall
 
         public void Initialize(
             string fileName = "HandValueTable.txt",
-            double loadFactor = 3.0)
+            double loadFactor = 6.0)
         {
             if (loaded) return;
             if (monteCarloMap != null)
@@ -35,7 +33,7 @@ namespace SnapCall
 
             DateTime start = DateTime.UtcNow;
 
-            // Load hand rank table or create one if no filenameOppClusters was given
+            // Load hand rank table or create one if no file was given
             if (fileName != null && File.Exists(fileName))
             {
                 if (File.Exists(fileName))
@@ -142,7 +140,7 @@ namespace SnapCall
 
                 foreach (KeyValuePair<ulong, HandStrength> strength in handStrengths)
                 {
-                    Utilities.BinaryInsert<HandStrength>(uniqueHandStrengths, strength.Value);
+                    Utilities.BinaryInsert(uniqueHandStrengths, strength.Value);
                     sharedLoopCounter++;
                     progress.Report((double)sharedLoopCounter / handStrengths.Count);
                 }
@@ -159,7 +157,7 @@ namespace SnapCall
                 {
                     var hand = new Hand(bitmap);
                     HandStrength strength = hand.GetStrength();
-                    var equivalence = Utilities.BinarySearch<HandStrength>(uniqueHandStrengths, strength);
+                    var equivalence = Utilities.BinarySearch(uniqueHandStrengths, strength);
                     if (equivalence == null) throw new Exception(string.Format("{0} hand not found", hand));
                     else
                     {

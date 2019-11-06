@@ -8,9 +8,22 @@ using System.Threading.Tasks;
 
 namespace Poker_MCCFRM
 {
-    public static class Global
+    public class Global
     {
         public static int NOF_THREADS = 24;
+
+        public static HandIndexer flopIndexer;
+        public static HandIndexer privIndexer;
+        public static HandIndexer privFlopIndexer;
+        public static HandIndexer privFlopTurnIndexer;
+        public static HandIndexer privFlopTurnIndexer2;
+        public static HandIndexer privFlopTurnRiver;
+        public static HandIndexer privFlopTurnRiver2;
+        public static HandIndexer fiveCardIndexer;
+        public static HandIndexer sixCardIndexer;
+        public static HandIndexer sevenCardIndexer;
+        public static HandIndexer showdownIndexer;
+        public static Evaluator handEvaluator;
 
         public static ConcurrentDictionary<string, Infoset> nodeMap = new ConcurrentDictionary<string, Infoset>();
         public static ThreadLocal<Deck> Deck = new ThreadLocal<Deck>(() => new Deck());

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SnapCall;
+using Poker_MCCFRM;
 
 namespace Poker_MCCFRM
 {
@@ -12,6 +12,7 @@ namespace Poker_MCCFRM
     {
         static void Main(string[] args)
         {
+            Global.handEvaluator = new Evaluator();
             CalculateInformationAbstraction();
             Train();
         }
@@ -49,62 +50,68 @@ namespace Poker_MCCFRM
 
             Console.Write("Creating Public Flop Index... ");
             int[] cardsPerRound = new int[1] { 3 };
-            HandIndexer flopIndexer = new HandIndexer(cardsPerRound);
-            Console.WriteLine(flopIndexer.roundSize[0] + " non-isomorphic hands found");
+            Global.flopIndexer = new HandIndexer(cardsPerRound);
+            Console.WriteLine(Global.flopIndexer.roundSize[0] + " non-isomorphic hands found");
 
             Console.Write("Creating Private Hand Index (2 cards)... ");
             cardsPerRound = new int[1] { 2 };
-            HandIndexer privIndexer = new HandIndexer(cardsPerRound);
-            Console.WriteLine(privIndexer.roundSize[0] + " non-isomorphic hands found");
+            Global.privIndexer = new HandIndexer(cardsPerRound);
+            Console.WriteLine(Global.privIndexer.roundSize[0] + " non-isomorphic hands found");
 
             Console.Write("Creating Private + Flop Index (2 & 3 cards)... ");
             cardsPerRound = new int[2] { 2, 3 };
-            HandIndexer privFlopIndexer = new HandIndexer(cardsPerRound);
-            Console.WriteLine(privFlopIndexer.roundSize[1] + " non-isomorphic hands found");
+            Global.privFlopIndexer = new HandIndexer(cardsPerRound);
+            Console.WriteLine(Global.privFlopIndexer.roundSize[1] + " non-isomorphic hands found");
 
             Console.Write("Creating Private + Flop + Turn Index (2 & 4 cards)... ");
             cardsPerRound = new int[2] { 2, 4 };
-            HandIndexer privFlopTurnIndexer = new HandIndexer(cardsPerRound);
-            Console.WriteLine(privFlopTurnIndexer.roundSize[1] + " non-isomorphic hands found");
+            Global.privFlopTurnIndexer = new HandIndexer(cardsPerRound);
+            Console.WriteLine(Global.privFlopTurnIndexer.roundSize[1] + " non-isomorphic hands found");
 
             Console.Write("Creating Private + Flop + Turn Index (2 & 3 & 1 cards)... ");
             cardsPerRound = new int[3] { 2, 3, 1 };
-            HandIndexer privFlopTurnIndexer2 = new HandIndexer(cardsPerRound);
-            Console.WriteLine(privFlopTurnIndexer2.roundSize[2] + " non-isomorphic hands found");
+            Global.privFlopTurnIndexer2 = new HandIndexer(cardsPerRound);
+            Console.WriteLine(Global.privFlopTurnIndexer2.roundSize[2] + " non-isomorphic hands found");
 
             Console.Write("Creating Private + Flop + Turn + River Index (2 & 5 cards)... ");
             cardsPerRound = new int[2] { 2, 5 };
-            HandIndexer privFlopTurnRiver = new HandIndexer(cardsPerRound);
-            Console.WriteLine(privFlopTurnRiver.roundSize[1] + " non-isomorphic hands found");
+            Global.privFlopTurnRiver = new HandIndexer(cardsPerRound);
+            Console.WriteLine(Global.privFlopTurnRiver.roundSize[1] + " non-isomorphic hands found");
 
             Console.Write("Creating Private + Flop + Turn + River Index (2 & 3 & 1 & 1 cards)... ");
             cardsPerRound = new int[4] { 2, 3, 1, 1 };
-            HandIndexer privFlopTurnRiver2 = new HandIndexer(cardsPerRound);
-            Console.WriteLine(privFlopTurnRiver2.roundSize[3] + " non-isomorphic hands found");
+            Global.privFlopTurnRiver2 = new HandIndexer(cardsPerRound);
+            Console.WriteLine(Global.privFlopTurnRiver2.roundSize[3] + " non-isomorphic hands found");
 
             Console.Write("Creating 5 card index... ");
             cardsPerRound = new int[1] { 5 };
-            HandIndexer fiveCardIndexer = new HandIndexer(cardsPerRound);
-            Console.WriteLine(fiveCardIndexer.roundSize[0] + " non-isomorphic hands found");
+            Global.fiveCardIndexer = new HandIndexer(cardsPerRound);
+            Console.WriteLine(Global.fiveCardIndexer.roundSize[0] + " non-isomorphic hands found");
 
             Console.Write("Creating 6 card index... ");
             cardsPerRound = new int[1] { 6 };
-            HandIndexer sixCardIndexer = new HandIndexer(cardsPerRound);
-            Console.WriteLine(sixCardIndexer.roundSize[0] + " non-isomorphic hands found");
+            Global.sixCardIndexer = new HandIndexer(cardsPerRound);
+            Console.WriteLine(Global.sixCardIndexer.roundSize[0] + " non-isomorphic hands found");
 
             Console.Write("Creating 7 card index... ");
             cardsPerRound = new int[1] { 7 };
-            HandIndexer sevenCardIndexer = new HandIndexer(cardsPerRound);
-            Console.WriteLine(sevenCardIndexer.roundSize[0] + " non-isomorphic hands found");
+            Global.sevenCardIndexer = new HandIndexer(cardsPerRound);
+            Console.WriteLine(Global.sevenCardIndexer.roundSize[0] + " non-isomorphic hands found");
+
+            Console.Write("Creating 2 + 5 + 2 card index... ");
+            cardsPerRound = new int[3] { 2, 5, 2 };
+            Global.showdownIndexer = new HandIndexer(cardsPerRound);
+            Console.WriteLine(Global.showdownIndexer.roundSize[2] + " non-isomorphic hands found");
 
             Evaluator evaluator = new Evaluator();
-            OCHS OCHSTable = new OCHS(evaluator, privIndexer, privFlopTurnRiver);
-            EMDTable EMDTable = new EMDTable(OCHSTable, privIndexer, privFlopIndexer, privFlopTurnIndexer, privFlopTurnRiver);
-            EHSTable EHSTable = new EHSTable(evaluator, privFlopIndexer, privFlopTurnIndexer);
+            OCHS.Init(Global.privIndexer, Global.privFlopTurnRiver);
+            EMDTable.Init(Global.privIndexer, Global.privFlopIndexer,
+                Global.privFlopTurnIndexer, Global.privFlopTurnRiver);
         }
         private static void Train()
         {
             Console.WriteLine("Starting Monte Carlo Counterfactual Regret Minimization (MCCFRM)...");
+            Global.handEvaluator.Initialize();
 
             int T = 100000000; // the total number of training rounds
             int StrategyInterval = 100; // bb rounds before updating player strategy (recursive through tree)

@@ -26,8 +26,8 @@ namespace Poker_MCCFRM
 {
     abstract class State
     {
-        public List<Tuple<Card, Card>> playerCards = new List<Tuple<Card, Card>>();
-        public List<Card> tableCards = new List<Card>();
+        public List<Tuple<ulong, ulong>> playerCards = new List<Tuple<ulong, ulong>>();
+        public List<ulong> tableCards = new List<ulong>();
         public List<int> stacks = new List<int>();
         public List<int> bets = new List<int>();
         public List<float> rewards = new List<float>();
@@ -122,7 +122,7 @@ namespace Poker_MCCFRM
     class TerminalState : State
     {
         public TerminalState(List<int> stacks, List<int> bets, List<ACTION> history,
-             List<Tuple<Card, Card>> playerCards, List<Card> tableCards, List<ACTION> lastActions,
+             List<Tuple<ulong, ulong>> playerCards, List<ulong> tableCards, List<ACTION> lastActions,
              List<bool> isPlayerIn)
         {
             this.stacks = stacks;
@@ -165,40 +165,30 @@ namespace Poker_MCCFRM
             else
             {
                 // at least 2 players are in
-                List<int> temporaryHandVal = new List<int>(Global.nofPlayers);
+                List<int> handValues = new List<int>(Global.nofPlayers);
                 for (int i = 0; i < Global.nofPlayers; ++i)
                 {
                     if (isPlayerIn[i])
                     {
                         Hand hand = new Hand();
-                        hand.Add(playerCards[i].Item1);
-                        hand.Add(playerCards[i].Item2);
+                        hand.Cards.Add(new Card(playerCards[i].Item1));
+                        hand.Cards.Add(new Card(playerCards[i].Item2));
                         for (int j = 0; j < tableCards.Count(); ++j)
                         {
-                            hand.Add(tableCards[j]);
+                            hand.Cards.Add(new Card(tableCards[j]));
                         }
-                        Hand bestHand = HandEvaluator.getBestHand(hand);
-                        if (bestHand.getValue().Count < 1)
-                            Console.WriteLine("Shit..");
-
-                        int value = 0;
-                        for (int k = 0; k < bestHand.getValue().Count; k++)
-                        {
-                            value += (int)Math.Pow(20, 6 - k)*bestHand.getValue()[k]; // check
-                        }
-                        temporaryHandVal.Add(value);
                     }
                 }
                 // temphandval contains values of each players hand who is in
                 List<int> indicesWithBestHands = new List<int>();
-                int maxVal = temporaryHandVal.Max();
+                int maxVal = handValues.Max();
 
-                var maxIndex = temporaryHandVal.IndexOf(maxVal);
+                var maxIndex = handValues.IndexOf(maxVal);
                 while (maxIndex != -1)
                 {
                     indicesWithBestHands.Add(maxIndex);
-                    temporaryHandVal[maxIndex] = 0;
-                    maxIndex = temporaryHandVal.IndexOf(maxVal);
+                    handValues[maxIndex] = 0;
+                    maxIndex = handValues.IndexOf(maxVal);
                 }
                 for (int i = 0; i < indicesWithBestHands.Count(); ++i)
                 {
@@ -230,7 +220,7 @@ namespace Poker_MCCFRM
             playersInHand = Global.nofPlayers;
         }
         public ChanceState(int bettingRound, int playersInHand, List<int> stacks, List<int> bets, List<ACTION> history,
-             List<Tuple<Card, Card>> playerCards, List<Card> tableCards, List<ACTION> lastActions,
+             List<Tuple<ulong, ulong>> playerCards, List<ulong> tableCards, List<ACTION> lastActions,
              List<bool> isPlayerIn)
         {
             this.stacks = stacks;
@@ -275,8 +265,8 @@ namespace Poker_MCCFRM
             }
 
             // todo: wouldnt need to always copy
-            List<Tuple<Card, Card>> playerCardsNew = new List<Tuple<Card, Card>>(playerCards);
-            List<Card> tableCardsNew = new List<Card>(tableCards);
+            List<Tuple<ulong, ulong>> playerCardsNew = new List<Tuple<ulong, ulong>>(playerCards);
+            List<ulong> tableCardsNew = new List<ulong>(tableCards);
 
             switch (bettingRound)
             {
@@ -284,22 +274,22 @@ namespace Poker_MCCFRM
                     Global.Deck.Value.Shuffle();
                     for (int i = 0; i < Global.nofPlayers; ++i)
                     {
-                        playerCardsNew.Add(Tuple.Create(Global.Deck.Value.Deal(i * 2), Global.Deck.Value.Deal(i * 2 + 1)));
+                        playerCardsNew.Add(Tuple.Create(Global.Deck.Value.Draw(i * 2), Global.Deck.Value.Draw(i * 2 + 1)));
                     }
                     break;
                 case 1: // deal flop
                     Global.Deck.Value.Shuffle(Global.nofPlayers * 2); // not necessarily needed, check
-                    tableCardsNew.Add(Global.Deck.Value.Deal(Global.nofPlayers * 2 + 0));
-                    tableCardsNew.Add(Global.Deck.Value.Deal(Global.nofPlayers * 2 + 1));
-                    tableCardsNew.Add(Global.Deck.Value.Deal(Global.nofPlayers * 2 + 2));
+                    tableCardsNew.Add(Global.Deck.Value.Draw(Global.nofPlayers * 2 + 0));
+                    tableCardsNew.Add(Global.Deck.Value.Draw(Global.nofPlayers * 2 + 1));
+                    tableCardsNew.Add(Global.Deck.Value.Draw(Global.nofPlayers * 2 + 2));
                     break;
                 case 2: // deal turn
                     Global.Deck.Value.Shuffle(Global.nofPlayers * 2 + 3);
-                    tableCardsNew.Add(Global.Deck.Value.Deal(Global.nofPlayers * 2 + 3));
+                    tableCardsNew.Add(Global.Deck.Value.Draw(Global.nofPlayers * 2 + 3));
                     break;
                 case 3: // deal river
                     Global.Deck.Value.Shuffle(Global.nofPlayers * 2 + 4);
-                    tableCardsNew.Add(Global.Deck.Value.Deal(Global.nofPlayers * 2 + 4));
+                    tableCardsNew.Add(Global.Deck.Value.Draw(Global.nofPlayers * 2 + 4));
                     break;
             }
             if (GetNumberOfPlayersThatNeedToAct() >= 2 && bettingRound < 3)
@@ -368,17 +358,17 @@ namespace Poker_MCCFRM
             }
 
             // todo: wouldnt need to always copy
-            List<Card> tableCardsNew = new List<Card>(tableCards);
+            List<ulong> tableCardsNew = new List<ulong>(tableCards);
 
             for (int j = 0; j < 14; j++)
             {
-                List<Tuple<Card, Card>> playerCardsNew = new List<Tuple<Card, Card>>(playerCards);
+                List<Tuple<ulong, ulong>> playerCardsNew = new List<Tuple<ulong, ulong>>(playerCards);
 
                 if (j == 0)
                 {
                     for (int i = 0; i < Global.nofPlayers; ++i)
                     {
-                        playerCardsNew.Add(Tuple.Create(new Card(RANK.ACE, SUIT.CLUBS), new Card(RANK.ACE, SUIT.DIAMONDS)));
+                        playerCardsNew.Add(Tuple.Create(new Card("Ac").GetBit(), new Card("Ad").GetBit()));
                         // other player doesnt matter
                     }
                 }
@@ -386,7 +376,7 @@ namespace Poker_MCCFRM
                 {
                     for (int i = 0; i < Global.nofPlayers; ++i)
                     {
-                        playerCardsNew.Add(Tuple.Create(new Card(RANK.KING, SUIT.HEARTS), new Card(RANK.KING, SUIT.SPADES)));
+                        playerCardsNew.Add(Tuple.Create(new Card("Kh").GetBit(), new Card("Ks").GetBit()));
                         // other player doesnt matter
                     }
                 }
@@ -394,7 +384,7 @@ namespace Poker_MCCFRM
                 {
                     for (int i = 0; i < Global.nofPlayers; ++i)
                     {
-                        playerCardsNew.Add(Tuple.Create(new Card(RANK.ACE, SUIT.CLUBS), new Card(RANK.KING, SUIT.CLUBS)));
+                        playerCardsNew.Add(Tuple.Create(new Card("Ac").GetBit(), new Card("Kc").GetBit()));
                         // other player doesnt matter
                     }
                 }
@@ -402,7 +392,7 @@ namespace Poker_MCCFRM
                 {
                     for (int i = 0; i < Global.nofPlayers; ++i)
                     {
-                        playerCardsNew.Add(Tuple.Create(new Card(RANK.ACE, SUIT.CLUBS), new Card(RANK.KING, SUIT.HEARTS)));
+                        playerCardsNew.Add(Tuple.Create(new Card("Ac").GetBit(), new Card("Kh").GetBit()));
                         // other player doesnt matter
                     }
                 }
@@ -410,7 +400,7 @@ namespace Poker_MCCFRM
                 {
                     for (int i = 0; i < Global.nofPlayers; ++i)
                     {
-                        playerCardsNew.Add(Tuple.Create(new Card(RANK.ACE, SUIT.CLUBS), new Card(RANK.TEN, SUIT.SPADES)));
+                        playerCardsNew.Add(Tuple.Create(new Card("Ac").GetBit(), new Card("Ts").GetBit()));
                         // other player doesnt matter
                     }
                 }
@@ -418,7 +408,7 @@ namespace Poker_MCCFRM
                 {
                     for (int i = 0; i < Global.nofPlayers; ++i)
                     {
-                        playerCardsNew.Add(Tuple.Create(new Card(RANK.SIX, SUIT.CLUBS), new Card(RANK.SIX, SUIT.DIAMONDS)));
+                        playerCardsNew.Add(Tuple.Create(new Card("6c").GetBit(), new Card("6d").GetBit()));
                         // other player doesnt matter
                     }
                 }
@@ -426,7 +416,7 @@ namespace Poker_MCCFRM
                 {
                     for (int i = 0; i < Global.nofPlayers; ++i)
                     {
-                        playerCardsNew.Add(Tuple.Create(new Card(RANK.SIX, SUIT.HEARTS), new Card(RANK.SIX, SUIT.SPADES)));
+                        playerCardsNew.Add(Tuple.Create(new Card("6h").GetBit(), new Card("6s").GetBit()));
                         // other player doesnt matter
                     }
                 }
@@ -434,7 +424,7 @@ namespace Poker_MCCFRM
                 {
                     for (int i = 0; i < Global.nofPlayers; ++i)
                     {
-                        playerCardsNew.Add(Tuple.Create(new Card(RANK.SEVEN, SUIT.CLUBS), new Card(RANK.SEVEN, SUIT.DIAMONDS)));
+                        playerCardsNew.Add(Tuple.Create(new Card("7c").GetBit(), new Card("7d").GetBit()));
                         // other player doesnt matter
                     }
                 }
@@ -442,7 +432,7 @@ namespace Poker_MCCFRM
                 {
                     for (int i = 0; i < Global.nofPlayers; ++i)
                     {
-                        playerCardsNew.Add(Tuple.Create(new Card(RANK.SEVEN, SUIT.HEARTS), new Card(RANK.SEVEN, SUIT.SPADES)));
+                        playerCardsNew.Add(Tuple.Create(new Card("7h").GetBit(), new Card("7s").GetBit()));
                         // other player doesnt matter
                     }
                 }
@@ -450,7 +440,7 @@ namespace Poker_MCCFRM
                 {
                     for (int i = 0; i < Global.nofPlayers; ++i)
                     {
-                        playerCardsNew.Add(Tuple.Create(new Card(RANK.FOUR, SUIT.CLUBS), new Card(RANK.FOUR, SUIT.DIAMONDS)));
+                        playerCardsNew.Add(Tuple.Create(new Card("4c").GetBit(), new Card("4d").GetBit()));
                         // other player doesnt matter
                     }
                 }
@@ -458,7 +448,7 @@ namespace Poker_MCCFRM
                 {
                     for (int i = 0; i < Global.nofPlayers; ++i)
                     {
-                        playerCardsNew.Add(Tuple.Create(new Card(RANK.TWO, SUIT.CLUBS), new Card(RANK.TWO, SUIT.DIAMONDS)));
+                        playerCardsNew.Add(Tuple.Create(new Card("2c").GetBit(), new Card("2d").GetBit()));
                         // other player doesnt matter
                     }
                 }
@@ -466,7 +456,7 @@ namespace Poker_MCCFRM
                 {
                     for (int i = 0; i < Global.nofPlayers; ++i)
                     {
-                        playerCardsNew.Add(Tuple.Create(new Card(RANK.TWO, SUIT.CLUBS), new Card(RANK.FIVE, SUIT.DIAMONDS)));
+                        playerCardsNew.Add(Tuple.Create(new Card("2c").GetBit(), new Card("5d").GetBit()));
                         // other player doesnt matter
                     }
                 }
@@ -474,7 +464,7 @@ namespace Poker_MCCFRM
                 {
                     for (int i = 0; i < Global.nofPlayers; ++i)
                     {
-                        playerCardsNew.Add(Tuple.Create(new Card(RANK.JACK, SUIT.CLUBS), new Card(RANK.THREE, SUIT.DIAMONDS)));
+                        playerCardsNew.Add(Tuple.Create(new Card("Jc").GetBit(), new Card("3d").GetBit()));
                         // other player doesnt matter
                     }
                 }
@@ -482,7 +472,7 @@ namespace Poker_MCCFRM
                 {
                     for (int i = 0; i < Global.nofPlayers; ++i)
                     {
-                        playerCardsNew.Add(Tuple.Create(new Card(RANK.THREE, SUIT.CLUBS), new Card(RANK.SEVEN, SUIT.DIAMONDS)));
+                        playerCardsNew.Add(Tuple.Create(new Card("3c").GetBit(), new Card("7d").GetBit()));
                         // other player doesnt matter
                     }
                 }
@@ -500,7 +490,7 @@ namespace Poker_MCCFRM
     {
         public PlayState(int bettingRound, int playerToMove, int lastToMove, int minRaise,
             int playersInHand, List<int> stacks, List<int> bets, List<ACTION> history,
-             List<Tuple<Card, Card>> playerCards, List<Card> tableCards, List<ACTION> lastActions,
+             List<Tuple<ulong, ulong>> playerCards, List<ulong> tableCards, List<ACTION> lastActions,
              List<bool> isPlayerIn, bool isBettingOpen)
         {
             this.lastPlayer = lastToMove;
@@ -829,25 +819,39 @@ namespace Poker_MCCFRM
             {
                 string historyString = string.Join(",", history.ToArray());
 
-                List<Card> visibleCards = new List<Card>();
-                visibleCards.Add(playerCards[playerToMove].Item1);
-                visibleCards.Add(playerCards[playerToMove].Item2);
-
+                List<int> cards = new List<int>();
+                cards.Add(new Card(playerCards[playerToMove].Item1).GetIndex());
+                cards.Add(new Card(playerCards[playerToMove].Item2).GetIndex());
                 for (int i = 0; i < tableCards.Count; ++i)
                 {
-                    visibleCards.Add(tableCards[i]);
+                    cards.Add(new Card(tableCards[i]).GetIndex());
                 }
-                visibleCards.OrderBy(x => x.getRank()).ThenBy(x => x.getSuit());
+                int[] cardArray = cards.ToArray();
 
                 string cardString = "";
-                for (int i = 0; i < visibleCards.Count; ++i)
+                if(tableCards.Count == 0)
                 {
-                    cardString += visibleCards[i].ToStringShort();
+                    long index = Global.privIndexer.indexLast(cardArray);
+                    cardString += "Preflop" + index.ToString();
                 }
-
+                else if (tableCards.Count == 3)
+                {
+                    long index = EMDTable.flopIndices[Global.privFlopIndexer.indexLast(cardArray)];
+                    cardString += "Flop" + index.ToString();
+                }
+                else if (tableCards.Count == 4)
+                {
+                    long index = EMDTable.turnIndices[Global.privFlopTurnIndexer.indexLast(cardArray)];
+                    cardString += "Turn" + index.ToString();
+                }
+                else
+                {
+                    long index = OCHS.riverIndices[Global.privFlopTurnRiver.indexLast(cardArray)];
+                    cardString += "River" + index.ToString();
+                }
                 infosetString = historyString + cardString;
             }
-
+ 
             Infoset infoset = null;
             Global.nodeMap.TryGetValue(infosetString, out infoset);
             if (infoset != null)

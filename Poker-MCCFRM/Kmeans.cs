@@ -12,8 +12,6 @@ namespace Poker_MCCFRM
     /// </summary>
     class Kmeans
     {
-        int nofRuns = 4;
-       
         public Kmeans(){ }
         /// <summary>
         /// Returns an array where the element at index i contains the cluster entry associated with the entry
@@ -21,14 +19,14 @@ namespace Poker_MCCFRM
         /// <param name="data"></param>
         /// <param name="k"></param>
         /// <returns></returns>
-        public int[] ClusterEMD(float[,] data, int k)
+        public int[] ClusterEMD(float[,] data, int k, int nofRuns)
         {
-            Console.WriteLine("K-means clustering {0} elements into {1} clusters with {2} restarts...", data.GetLength(0), k, nofRuns);
+            Console.WriteLine("K-means (EMD) clustering {0} elements into {1} clusters with {2} restarts...", data.GetLength(0), k, nofRuns);
 
             DateTime start = DateTime.UtcNow;
 
             int[] bestCenters = new int[data.GetLength(0)];
-            int[] recordCenters = new int[data.GetLength(0)]; // we return indices only because the centers are discarded
+            int[] recordCenters = new int[data.GetLength(0)]; // we return only indices, the centers are discarded
             long recordDistance = long.MaxValue;
 
             for (int run = 0; run < nofRuns; ++run)
@@ -40,7 +38,7 @@ namespace Poker_MCCFRM
                 List<int> centerIndices = new List<int>();
                 for (int i = 0; i < k; ++i)
                 {
-                    int index = RandomGen.Next(0, data.GetLength(1));
+                    int index = RandomGen.Next(0, data.GetLength(0));
                     while (centerIndices.Contains(index))
                     {
                         index = RandomGen.Next(0, data.GetLength(0));
@@ -61,24 +59,39 @@ namespace Poker_MCCFRM
                         Parallel.For(0, Global.NOF_THREADS,
                          i =>
                          {
+                             double threadDistance = 0;
+                             long iter = 0;
+
                              for (int j = Util.GetWorkItemsIndices(data.GetLength(0), Global.NOF_THREADS, i).Item1;
                              j < Util.GetWorkItemsIndices(data.GetLength(0), Global.NOF_THREADS, i).Item2; ++j)
                              { // go through all data
-                                 float distance = float.MaxValue;
+                                 double distance = double.MaxValue;
                                  int bestIndex = 0;
                                  for (int m = 0; m < k; ++m) // go through centers
                                  {
-                                     if (GetEarthMoverDistance(data, centers, j, m) < distance)
+                                     float tempEMD = GetEarthMoverDistance(data, centers, j, m);
+                                     if (tempEMD < distance)
                                      {
-                                         distance = GetEarthMoverDistance(data, centers, j, m);
+                                         distance = tempEMD;
                                          bestIndex = m;
                                      }
                                  }
                                  bestCenters[j] = bestIndex;
-                                 Interlocked.Add(ref totalDistance, (long)(distance * 1000000));
-                                 Interlocked.Add(ref sharedLoopCounter, 1);
-                                 progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.GetLength(0));
+                                 threadDistance += distance;
+
+                                 iter++;
+                                 if (iter % 10000 == 0)
+                                 {
+                                     Interlocked.Add(ref sharedLoopCounter, 10000);
+                                     Interlocked.Add(ref totalDistance, (long)(threadDistance * 1000000));
+                                     threadDistance = 0;
+                                     progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.GetLength(0));
+                                 }
                              }
+                             Interlocked.Add(ref sharedLoopCounter, iter % 10000);
+                             progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.GetLength(0));
+
+                             Interlocked.Add(ref totalDistance, (long)(threadDistance * 1000000));
                          });
                     }
 
@@ -97,13 +110,18 @@ namespace Poker_MCCFRM
                     {
                         for (int m = 0; m < data.GetLength(1); ++m)
                         {
-                            centers[n, m] /= occurrences[n];
+                            if (occurrences[n] != 0)
+                                centers[n, m] /= occurrences[n];
+                            else
+                                break;
                         }
                     }
-                    if(totalDistance == lastDistance)
+                    totalDistance /= data.GetLength(0);
+                    if (totalDistance == lastDistance)
                     {
                         distanceChanged = false;
                     }
+                    long diff = lastDistance - totalDistance;
                     lastDistance = totalDistance;
 
                     if(totalDistance < recordDistance)
@@ -111,12 +129,13 @@ namespace Poker_MCCFRM
                         recordDistance = totalDistance;
                         Array.Copy(bestCenters, recordCenters, recordCenters.Length);
                     }
-                    Console.WriteLine("Current total distance: " + (double)totalDistance / 1000000.0);
+                    Console.WriteLine("Current average distance: {0} Improvement: {1}", (double)totalDistance / 1000000.0,
+                        (double)diff / 1000000.0);
                 }
             }
             Console.WriteLine("Best distance found: " + (double)recordDistance/ 1000000.0);
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("K-means clustering completed in {0:0.00}s", elapsed.TotalSeconds);
+            Console.WriteLine("K-means clustering (EMD) completed in {0:0.00}s", elapsed.TotalSeconds);
 
             // print starting hand chart
             return recordCenters;
@@ -127,9 +146,9 @@ namespace Poker_MCCFRM
         /// <param name="data"></param>
         /// <param name="k"></param>
         /// <returns></returns>
-        public int[] ClusterL2(float[,] data, int k)
+        public int[] ClusterL2(float[,] data, int k, int nofRuns)
         {
-            Console.WriteLine("K-means clustering {0} elements into {1} clusters with {2} restarts...", data.GetLength(0), k, nofRuns);
+            Console.WriteLine("K-means clustering (L2) {0} elements into {1} clusters with {2} restarts...", data.GetLength(0), k, nofRuns);
 
             DateTime start = DateTime.UtcNow;
 
@@ -146,7 +165,7 @@ namespace Poker_MCCFRM
                 List<int> centerIndices = new List<int>();
                 for (int i = 0; i < k; ++i)
                 {
-                    int index = RandomGen.Next(0, data.GetLength(1));
+                    int index = RandomGen.Next(0, data.GetLength(0));
                     while (centerIndices.Contains(index))
                     {
                         index = RandomGen.Next(0, data.GetLength(0));
@@ -167,24 +186,38 @@ namespace Poker_MCCFRM
                         Parallel.For(0, Global.NOF_THREADS,
                          i =>
                          {
+                             double threadDistance = 0;
+                             long iter = 0;
                              for (int j = Util.GetWorkItemsIndices(data.GetLength(0), Global.NOF_THREADS, i).Item1;
                                     j < Util.GetWorkItemsIndices(data.GetLength(0), Global.NOF_THREADS, i).Item2; ++j)
                              { // go through all data
-                                 float distance = float.MaxValue;
+                                 double distance = double.MaxValue;
                                  int bestIndex = 0;
                                  for (int m = 0; m < k; ++m) // go through centers
                                  {
-                                     if (GetL2Distance(data, centers, j, m) < distance)
+                                     double tempDistance = GetL2Distance(data, centers, j, m);
+                                     if (tempDistance < distance)
                                      {
-                                         distance = GetL2Distance(data, centers, j, m);
+                                         distance = tempDistance;
                                          bestIndex = m;
                                      }
                                  }
                                  bestCenters[j] = bestIndex;
-                                 Interlocked.Add(ref totalDistance, (long)(distance * 1000000));
-                                 Interlocked.Add(ref sharedLoopCounter, 1);
-                                 progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.GetLength(0));
+                                 threadDistance += distance;
+
+                                 iter++;
+                                 if(iter % 10000 == 0) 
+                                 { 
+                                     Interlocked.Add(ref sharedLoopCounter, 10000);
+                                     Interlocked.Add(ref totalDistance, (long)(threadDistance * 1000000));
+                                     threadDistance = 0;
+                                     progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.GetLength(0));
+                                 }
                              }
+                             Interlocked.Add(ref sharedLoopCounter, iter % 10000);
+                             progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.GetLength(0));
+
+                             Interlocked.Add(ref totalDistance, (long)(threadDistance * 1000000));
                          });
                     }
 
@@ -203,9 +236,13 @@ namespace Poker_MCCFRM
                     {
                         for (int m = 0; m < data.GetLength(1); ++m)
                         {
-                            centers[n, m] /= occurrences[n];
+                            if (occurrences[n] != 0)
+                                centers[n, m] /= occurrences[n];
+                            else
+                                break;
                         }
                     }
+                    totalDistance /= data.GetLength(0);
                     if (totalDistance == lastDistance)
                     {
                         distanceChanged = false;
@@ -218,13 +255,13 @@ namespace Poker_MCCFRM
                         recordDistance = totalDistance;
                         Array.Copy(bestCenters, recordCenters, recordCenters.Length);
                     }
-                    Console.WriteLine("Current total distance: {0} Improvement: {1}",(double)totalDistance / 1000000.0,
+                    Console.WriteLine("Current average distance: {0} Improvement: {1}",(double)totalDistance / 1000000.0,
                         (double)diff / 1000000.0);
                 }
             }
             Console.WriteLine("Best distance found: " + (double)recordDistance / 1000000.0);
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("K-means clustering completed in {0:0.00}s", elapsed.TotalSeconds);
+            Console.WriteLine("K-means clustering (L2) completed in {0:0.00}s", elapsed.TotalSeconds);
 
             // print starting hand chart
             return recordCenters;
@@ -247,14 +284,14 @@ namespace Poker_MCCFRM
             }
             return totalDistance;
         }
-        private float GetL2Distance(float[,] data, float[,] centers, int index1, int index2)
+        private double GetL2Distance(float[,] data, float[,] centers, int index1, int index2)
         {
-            float totalDistance = 0;
+            double totalDistance = 0;
             for (int i = 0; i < data.GetLength(1); i++)
             {
-                totalDistance += (data[index1, i] - centers[index2, i])* (data[index1, i] - centers[index2, i]);
+                totalDistance += (double)(data[index1, i] - centers[index2, i])* (double)(data[index1, i] - centers[index2, i]);
             }
-            return totalDistance;
+            return Math.Sqrt(totalDistance);
         }
     }
 }

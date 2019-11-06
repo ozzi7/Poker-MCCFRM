@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SnapCall
+namespace Poker_MCCFRM
 {
     public static class Utilities
     {

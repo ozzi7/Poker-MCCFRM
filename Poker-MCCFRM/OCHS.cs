@@ -20,48 +20,40 @@ namespace Poker_MCCFRM
     /// 
     /// TODO: don't use heads up values for more than 1 player?
     /// </summary>
-    public class OCHS
+    public static class OCHS
     {
         const int nofOpponentClusters = 8; // histogram size for river bucketing
         const int preflopHistogramSize = 50;
         const int nofMCSimsPerPreflopHand = 100000;
-        const int nofRiverBuckets = 200;
+        public const int nofRiverBuckets = 200;
         
-        public int[] preflopIndices = null; // has 169 elements to map each starting hand to a cluster
-        public int[] riverIndices = null; // mapping each canonical river hand (7 cards) to a cluster
-        float[,] histogramsPreflop;
-        float[,] histogramsRiver;
+        public static int[] preflopIndices = null; // has 169 elements to map each starting hand to a cluster
+        public static int[] riverIndices = null; // mapping each canonical river hand (7 cards) to a cluster
+        static float[,] histogramsPreflop;
+        static float[,] histogramsRiver;
 
-        public OCHS(SnapCall.Evaluator evaluator, HandIndexer handIndexerPreflop, HandIndexer handIndexerRiver)
+        public static void Init(HandIndexer handIndexerPreflop, HandIndexer handIndexerRiver)
         {
             LoadFromFile();
 
-            if (preflopIndices == null)
+            if (riverIndices == null)
             {
-                evaluator.Initialize();
-                CalculateOCHSOpponentClusters(evaluator, handIndexerPreflop);
-                ClusterPreflopHands(handIndexerPreflop);
-                SaveToFile();
-                GenerateRiverHistograms(evaluator, handIndexerPreflop, handIndexerRiver);
-                SaveToFile();
-                ClusterRiver(handIndexerRiver);
-                SaveToFile();
-            }
-            else if (histogramsRiver == null)
-            {
-                evaluator.Initialize();
-                GenerateRiverHistograms(evaluator, handIndexerPreflop, handIndexerRiver);
-                SaveToFile();
-                ClusterRiver(handIndexerRiver);
-                SaveToFile();
-            }
-            else if (riverIndices == null)
-            {
+                if (histogramsRiver == null)
+                {
+                    if (preflopIndices == null)
+                    {
+                        CalculateOCHSOpponentClusters(handIndexerPreflop);
+                        ClusterPreflopHands(handIndexerPreflop);
+                        SaveToFile();
+                    }
+                    GenerateRiverHistograms(handIndexerPreflop, handIndexerRiver);
+                    SaveToFile();
+                }
                 ClusterRiver(handIndexerRiver);
                 SaveToFile();
             }
         }
-        private void CalculateOCHSOpponentClusters(SnapCall.Evaluator evaluator, HandIndexer indexer)
+        private static void CalculateOCHSOpponentClusters(HandIndexer indexer)
         {
             Console.WriteLine("Calculating {0} opponent clusters for OCHS using Monte Carlo Sampling...", nofOpponentClusters);
             DateTime start = DateTime.UtcNow;
@@ -71,7 +63,7 @@ namespace Poker_MCCFRM
 
             using (var progress = new ProgressBar())
             {
-                progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / (nofMCSimsPerPreflopHand * 169));
+                progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / 169);
 
                 Parallel.For(0, 169,
                  i =>
@@ -123,8 +115,8 @@ namespace Poker_MCCFRM
                                  ulong handSevenCards = (1uL << cards[0]) + (1uL << cards[1]) + (1uL << cardFlop1) + (1uL << cardFlop2) + (1uL << cardFlop3) + (1uL << cardTurn) + (1uL << cardRiver);
                                  ulong handOpponentSevenCards = (1uL << cardFlop1) + (1uL << cardFlop2) + (1uL << cardFlop3) + (1uL << cardTurn) + (1uL << cardRiver) + (1uL << card1Opponent) + (1uL << card2Opponent);
 
-                                 int valueSevenCards = evaluator.Evaluate(handSevenCards);
-                                 int valueOpponentSevenCards = evaluator.Evaluate(handOpponentSevenCards);
+                                 int valueSevenCards = Global.handEvaluator.Evaluate(handSevenCards);
+                                 int valueOpponentSevenCards = Global.handEvaluator.Evaluate(handOpponentSevenCards);
 
                                  int index = (valueSevenCards > valueOpponentSevenCards ? 0 : valueSevenCards == valueOpponentSevenCards ? 1 : 2);
 
@@ -133,20 +125,10 @@ namespace Poker_MCCFRM
                          }
                          float equity = (strength[0] + strength[1] / 2.0f) / (strength[0] + strength[1] + strength[2]);
                          histogramsPreflop[i, (Math.Min(preflopHistogramSize-1, (int)(equity * (float)preflopHistogramSize)))] += 1;
-                         deadCardMask = 0L;
-
-                         Interlocked.Add(ref sharedLoopCounter, 1);
-                         progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / (nofMCSimsPerPreflopHand * 169));
+                         deadCardMask = (1L << cards[0]) + (1L << cards[1]);
                      }
-                     float sum = 0.0f;
-                     for (int k = 0; k < preflopHistogramSize; ++k)
-                     {
-                         sum += histogramsPreflop[i, k];
-                     }
-                     for (int k = 0; k < preflopHistogramSize; ++k)
-                     {
-                         histogramsPreflop[i, k] /= sum;
-                     }
+                     Interlocked.Add(ref sharedLoopCounter, 1);
+                     progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / (169));
                  });
             }
 
@@ -156,9 +138,9 @@ namespace Poker_MCCFRM
             {
                 cardsOutput = new int[2];
                 indexer.unindex(indexer.rounds - 1, i, cardsOutput);
-                SnapCall.Hand hand = new SnapCall.Hand();
-                hand.Cards.Add(new SnapCall.Card(cardsOutput[0]));
-                hand.Cards.Add(new SnapCall.Card(cardsOutput[1]));
+                Hand hand = new Hand();
+                hand.Cards.Add(new Card(cardsOutput[0]));
+                hand.Cards.Add(new Card(cardsOutput[1]));
                 hand.PrintColoredCards();
                 Console.Write(": ");
                 for (int j = 0; j < preflopHistogramSize; ++j)
@@ -169,14 +151,14 @@ namespace Poker_MCCFRM
                 Console.WriteLine("Calculating opponent clusters completed in {0:0.00}s", elapsed.TotalSeconds);
             }
         }
-        private void ClusterPreflopHands(HandIndexer indexer)
+        private static void ClusterPreflopHands(HandIndexer indexer)
         {
             // k-means clustering
             Kmeans kmeans = new Kmeans();
-            preflopIndices = kmeans.ClusterEMD(histogramsPreflop, 8);
+            preflopIndices = kmeans.ClusterEMD(histogramsPreflop, 8, 100);
 
             Console.WriteLine("Created the following cluster for starting hands: ");
-            List<SnapCall.Hand> startingHands = SnapCall.Utilities.GetStartingHandChart();
+            List<Hand> startingHands = Poker_MCCFRM.Utilities.GetStartingHandChart();
             ConsoleColor[] consoleColors = { ConsoleColor.Gray, ConsoleColor.Blue, ConsoleColor.Magenta,
                 ConsoleColor.Yellow, ConsoleColor.Green, ConsoleColor.Red, ConsoleColor.Cyan, ConsoleColor.White };
 
@@ -193,43 +175,44 @@ namespace Poker_MCCFRM
             Console.ResetColor();
             Console.WriteLine();
         }
-        private void ClusterRiver(HandIndexer indexer)
+        private static void ClusterRiver(HandIndexer indexer)
         {
             // k-means clustering
             DateTime start = DateTime.UtcNow;
             Kmeans kmeans = new Kmeans();
-            riverIndices = kmeans.ClusterL2(histogramsRiver, nofRiverBuckets);
+            riverIndices = kmeans.ClusterL2(histogramsRiver, nofRiverBuckets, 4);
 
             Console.WriteLine("Created the following clusters for the River: ");
 
+            int nofExamplesToPrint = 10;
             for (int i = 0; i < indexer.roundSize[1]; ++i)
             {
-                if (riverIndices[i] == 0)
+                if (riverIndices[i] == 0 && nofExamplesToPrint > 0)
                 {
                     int[] cards = new int[7];
                     indexer.unindex(indexer.rounds - 1, i, cards);
 
-                    SnapCall.Hand hand = new SnapCall.Hand();
-                    hand.Cards.Add(new SnapCall.Card(cards[0]));
-                    hand.Cards.Add(new SnapCall.Card(cards[1]));
-                    hand.Cards.Add(new SnapCall.Card(cards[2]));
-                    hand.Cards.Add(new SnapCall.Card(cards[3]));
-                    hand.Cards.Add(new SnapCall.Card(cards[4]));
-                    hand.Cards.Add(new SnapCall.Card(cards[5]));
-                    hand.Cards.Add(new SnapCall.Card(cards[6]));
+                    Hand hand = new Hand();
+                    hand.Cards.Add(new Card(cards[0]));
+                    hand.Cards.Add(new Card(cards[1]));
+                    hand.Cards.Add(new Card(cards[2]));
+                    hand.Cards.Add(new Card(cards[3]));
+                    hand.Cards.Add(new Card(cards[4]));
+                    hand.Cards.Add(new Card(cards[5]));
+                    hand.Cards.Add(new Card(cards[6]));
                     hand.PrintColoredCards();
                     Console.WriteLine();
+                    nofExamplesToPrint--;
                 }
             }
             TimeSpan elapsed = DateTime.UtcNow - start;
             Console.WriteLine("River clustering completed in {0:0.00}s", elapsed.TotalSeconds);
         }
-        private void GenerateRiverHistograms(SnapCall.Evaluator evaluator, HandIndexer indexerPreflop, HandIndexer indexerRiver)
+        private static void GenerateRiverHistograms(HandIndexer indexerPreflop, HandIndexer indexerRiver)
         {
             Console.WriteLine("Generating histograms for {0} river hands of length {1} each...", 
                 indexerRiver.roundSize[1], nofOpponentClusters);
             DateTime start = DateTime.UtcNow;
-            riverIndices = new int[indexerRiver.roundSize[1]];
             histogramsRiver = new float[indexerRiver.roundSize[1], nofOpponentClusters];
 
             long sharedLoopCounter = 0;
@@ -240,6 +223,7 @@ namespace Poker_MCCFRM
                 Parallel.For(0, Global.NOF_THREADS,
                  t =>
                  {
+                     long iter = 0;
                      for (int i = Util.GetWorkItemsIndices((int)indexerRiver.roundSize[1], Global.NOF_THREADS, t).Item1;
                             i < Util.GetWorkItemsIndices((int)indexerRiver.roundSize[1], Global.NOF_THREADS, t).Item2; ++i)
                      {
@@ -268,8 +252,8 @@ namespace Poker_MCCFRM
                                  ulong handOpponentSevenCards = (1uL << card1Opponent) + (1uL << card2Opponent) + (1uL << cards[2]) + (1uL << cards[3]) + (1uL << cards[4])
                                  + (1uL << cards[5]) + (1uL << cards[6]);
 
-                                 int valueSevenCards = evaluator.Evaluate(handSevenCards);
-                                 int valueOpponentSevenCards = evaluator.Evaluate(handOpponentSevenCards);
+                                 int valueSevenCards = Global.handEvaluator.Evaluate(handSevenCards);
+                                 int valueOpponentSevenCards = Global.handEvaluator.Evaluate(handOpponentSevenCards);
 
                                  int winDrawLoss = (valueSevenCards > valueOpponentSevenCards ? 0 : valueSevenCards == valueOpponentSevenCards ? 1 : 2);
 
@@ -280,26 +264,77 @@ namespace Poker_MCCFRM
                              }
                              deadCardMask &= ~(1L << card1Opponent);
                          }
-                         // normalize the histogram ? (this loses information on handstrength but EMD doesnt work well anymore)
-                         // also: not normalizing between the histogram bars because hands that occur more often are more important
+
+                         iter++;
+                         if(iter%10000 == 0)
+                         {
+                             Interlocked.Add(ref sharedLoopCounter, 10000);
+                             progress.Report((double)(sharedLoopCounter) / indexerRiver.roundSize[1]);
+                         }
+                     }
+                     Interlocked.Add(ref sharedLoopCounter, iter % 10000);
+                     progress.Report((double)(sharedLoopCounter) / indexerRiver.roundSize[1]);
+                 });
+            }
+            TimeSpan elapsed = DateTime.UtcNow - start;
+            Console.WriteLine("Generating River histograms completed in {0:0.00}s", elapsed.TotalSeconds);
+        }
+
+        private static void GenerateRiverHistogramsTest(Evaluator evaluator, HandIndexer indexerPreflop, HandIndexer indexerRiverPlusOpponent)
+        {
+            Console.WriteLine("Generating histograms for {0} river hands of length {1} each...",
+                indexerRiverPlusOpponent.roundSize[1], nofOpponentClusters);
+            DateTime start = DateTime.UtcNow;
+            histogramsRiver = new float[indexerRiverPlusOpponent.roundSize[1], nofOpponentClusters];
+
+            long sharedLoopCounter = 0;
+            using (var progress = new ProgressBar())
+            {
+                progress.Report((double)(sharedLoopCounter) / indexerRiverPlusOpponent.roundSize[1]);
+
+                Parallel.For(0, Global.NOF_THREADS,
+                 t =>
+                 {
+                     int[] cards = new int[9];
+                     for (int i = Util.GetWorkItemsIndices((int)indexerRiverPlusOpponent.roundSize[2], Global.NOF_THREADS, t).Item1;
+                            i < Util.GetWorkItemsIndices((int)indexerRiverPlusOpponent.roundSize[2], Global.NOF_THREADS, t).Item2; ++i)
+                     {
+                         indexerRiverPlusOpponent.unindex(indexerRiverPlusOpponent.rounds - 1, i, cards);
+
+                         ulong handSevenCards = (1uL << cards[0]) + (1uL << cards[1]) + (1uL << cards[2]) + (1uL << cards[3]) + (1uL << cards[4]) +
+                         +(1uL << cards[5]) + (1uL << cards[6]);
+                         ulong handOpponentSevenCards = (1uL << cards[7]) + (1uL << cards[8]) + (1uL << cards[2]) + (1uL << cards[3]) + (1uL << cards[4])
+                         + (1uL << cards[5]) + (1uL << cards[6]);
+
+                         int valueSevenCards = evaluator.Evaluate(handSevenCards);
+                         int valueOpponentSevenCards = evaluator.Evaluate(handOpponentSevenCards);
+
+                         int winDrawLoss = (valueSevenCards > valueOpponentSevenCards ? 0 : valueSevenCards == valueOpponentSevenCards ? 1 : 2);
+
+                         long indexPreflop = indexerPreflop.indexLast(new int[] { cards[7], cards[8] });
+                         long[] indices = new long[3];
+                         indexerRiverPlusOpponent.indexAll(cards, indices);
+                         long indexRiver = indices[1];
+                         histogramsRiver[indexRiver, preflopIndices[indexPreflop]] += winDrawLoss == 0 ? 1.0f : winDrawLoss == 0 ? 0.5f : 0.0f;
+
                          float sum = 0.0f;
                          for (int k = 0; k < nofOpponentClusters; ++k)
                          {
-                             sum += histogramsRiver[i, k];
+                             sum += histogramsRiver[indexRiver, k];
                          }
                          for (int k = 0; k < nofOpponentClusters; ++k)
                          {
-                             histogramsRiver[i, k] /= sum;
+                             histogramsRiver[indexRiver, k] /= sum;
                          }
                          sharedLoopCounter++;
-                         progress.Report((double)(sharedLoopCounter) / indexerRiver.roundSize[1]);
+                         progress.Report((double)(sharedLoopCounter) / indexerRiverPlusOpponent.roundSize[2]);
                      }
                  });
             }
             TimeSpan elapsed = DateTime.UtcNow - start;
             Console.WriteLine("Generating River histograms completed in {0:0.00}s", elapsed.TotalSeconds);
         }
-        public void SaveToFile()
+        public static void SaveToFile()
         {
             string filenameOppClusters = "OCHSOpponentClusters.txt";
             string filenameRiverClusters = "OCHSRiverClusters.txt";
@@ -315,14 +350,14 @@ namespace Poker_MCCFRM
                     bf.Serialize(fileStream, preflopIndices);
                 }
             }
-            if (filenameRiverHistograms != null)
+            if (histogramsRiver != null)
             {
                 Console.WriteLine("Saving river histograms to file {0}", filenameRiverHistograms);
 
                 using (var fileStream = File.Create(filenameRiverHistograms))
                 {
                     BinaryFormatter bf = new BinaryFormatter();
-                    bf.Serialize(fileStream, filenameRiverHistograms);
+                    bf.Serialize(fileStream, histogramsRiver);
                 }
             }
             if (riverIndices != null)
@@ -336,7 +371,7 @@ namespace Poker_MCCFRM
                 }
             }
         }
-        private void LoadFromFile()
+        private static void LoadFromFile()
         {
             string filenameOppClusters = "OCHSOpponentClusters.txt";
             string filenameRiverHistograms = "OCHSRiverHistograms.txt"; 
@@ -350,14 +385,14 @@ namespace Poker_MCCFRM
                 var binForm = new BinaryFormatter();
                 riverIndices = (int[])binForm.Deserialize(fileStream2);
             }
-            else if (File.Exists(filenameRiverHistograms))
+            if (File.Exists(filenameRiverHistograms))
             {
                 Console.WriteLine("Loading river histograms from file {0}", filenameRiverHistograms);
                 using var fileStream = File.OpenRead(filenameRiverHistograms);
                 var binForm = new BinaryFormatter();
                 histogramsRiver = (float[,])binForm.Deserialize(fileStream);
             }
-            else if(File.Exists(filenameOppClusters))
+            if(File.Exists(filenameOppClusters))
             {
                 Console.WriteLine("Loading flop opponent clusters from file {0}", filenameOppClusters);
                 using var fileStream = File.OpenRead(filenameOppClusters);
