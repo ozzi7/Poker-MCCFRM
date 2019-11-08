@@ -46,9 +46,9 @@ namespace Poker_MCCFRM
 			}
 			return hand;
 		}
-        public ulong Draw(int position)
+        public ulong Draw(int pos)
         {
-            return cards[position];
+            return cards[pos];
         }
     }
 }

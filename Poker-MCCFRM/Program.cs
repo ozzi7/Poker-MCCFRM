@@ -93,7 +93,7 @@ namespace Poker_MCCFRM
 
             Parallel.For(0, Global.NOF_THREADS,
                   index => {
-                      Trainer trainer = new Trainer();
+                      Trainer trainer = new Trainer(index);
 
                       for (int t = 1; t < T; t++) // bb rounds
                       {

@@ -8,12 +8,14 @@ namespace Poker_MCCFRM
 {
     class Trainer
     {
+        private int threadIndex = 0;
         State rootState;
 
-        public Trainer()
+        public Trainer(int threadIndex)
         {
             Global.Deck.Value = new Deck();
             rootState = new ChanceState();
+            this.threadIndex = threadIndex;
         }
         /// <summary>
         /// Reset game state to save resources
@@ -164,13 +166,13 @@ namespace Poker_MCCFRM
         {
             if (gs is TerminalState)
             {
-                if (iteration % 10000 == 0)
+                if (iteration % 10000 == 0 && threadIndex == 0)
                 {
-                    //Console.WriteLine(new Card(gs.playerCards[0].Item1).ToString() + "" + new Card(gs.playerCards[0].Item2).ToString() + ", " +
-                    //    new Card(gs.playerCards[1].Item1).ToString() + "" + new Card(gs.playerCards[1].Item2).ToString());
-                    //Console.WriteLine(string.Join(",", gs.history.ToArray()));
-                    //Console.WriteLine(gs.GetReward(0) + ", " + gs.GetReward(1));
-                    //Console.WriteLine();
+                    Console.WriteLine(new Card(gs.playerCards[0].Item1).ToString() + "" + new Card(gs.playerCards[0].Item2).ToString() + ", " +
+                        new Card(gs.playerCards[1].Item1).ToString() + "" + new Card(gs.playerCards[1].Item2).ToString());
+                    Console.WriteLine(string.Join(",", gs.history.ToArray()));
+                    Console.WriteLine(gs.GetReward(0) + ", " + gs.GetReward(1));
+                    Console.WriteLine();
                 }
                 return gs.GetReward(traverser);
             }
@@ -256,45 +258,46 @@ namespace Poker_MCCFRM
             ResetGame();
             List<PlayState> gs = ((ChanceState)rootState).GetFirstActionStates();
 
-            foreach (PlayState ps in gs)
+            for(int i = 0; i < gs[0].GetValidActions().Count;++i)
             {
-                Infoset infoset = ps.GetInfoset();
-                //List<float> sigma = infoset.CalculateStrategy();
-                List<float> phi = infoset.GetFinalStrategy();
-
-                Hand hand = new Hand();
-                hand.Cards.Add(new Card(ps.playerCards[ps.playerToMove].Item1));
-                hand.Cards.Add(new Card(ps.playerCards[ps.playerToMove].Item2));
-                hand.PrintColoredCards(" ");
-                List<ACTION> actions = ps.GetValidActions();
-
-                for (int j = 0; j < actions.Count(); ++j)
+                if (gs[0].GetValidActions()[i] == ACTION.FOLD)
                 {
-                    if (actions[j] == ACTION.FOLD)
-                    {
-                        Console.Write("FOLD: " + phi[j].ToString("0.00") + " ");
-                    }
-                    if (actions[j] == ACTION.CALL)
-                    {
-                        Console.Write("CALL: " + phi[j].ToString("0.00") + " ");
-                    }
-                    if (actions[j] == ACTION.RAISE1)
-                    {
-                        Console.Write(Global.raises[0] + "*POT " + phi[j].ToString("0.00") + " ");
-                    }
-                    if (actions[j] == ACTION.RAISE2)
-                    {
-                        Console.Write(Global.raises[1] + "*POT " + phi[j].ToString("0.00") + " ");
-                    }
-                    if (actions[j] == ACTION.RAISE3)
-                    {
-                        Console.Write(Global.raises[2] + "*POT " + phi[j].ToString("0.00") + " ");
-                    }
-                    if (actions[j] == ACTION.ALLIN)
-                    {
-                        Console.Write("ALLIN: " + phi[j].ToString("0.00") + " ");
-                    }
+                    Console.WriteLine("FOLD Table");
                 }
+                if (gs[0].GetValidActions()[i] == ACTION.CALL)
+                {
+                    Console.WriteLine("CALL Table");
+                }
+                if (gs[0].GetValidActions()[i] == ACTION.RAISE1)
+                {
+                    Console.WriteLine(Global.raises[0] + "*POT RAISE " + "Table");
+                }
+                if (gs[0].GetValidActions()[i] == ACTION.RAISE2)
+                {
+                    Console.WriteLine(Global.raises[1] + "*POT RAISE " + "Table");
+                }
+                if (gs[0].GetValidActions()[i] == ACTION.RAISE3)
+                {
+                    Console.WriteLine(Global.raises[2] + "*POT RAISE " + "Table");
+                }
+                if (gs[0].GetValidActions()[i] == ACTION.ALLIN)
+                {
+                    Console.WriteLine("ALLIN Table");
+                }
+
+                for (int j = 0; j < gs.Count; ++j)
+                {
+                    PlayState ps = gs[j];
+                    Infoset infoset = ps.GetInfoset();
+                    //List<float> sigma = infoset.CalculateStrategy();
+                    List<float> phi = infoset.GetFinalStrategy();
+                    Console.Write(phi[i].ToString("0.00") + " ");
+
+                    if ((j+1) % 13 == 0)
+                        Console.WriteLine();
+                }
+
+                Console.WriteLine();
                 Console.WriteLine();
             }
         }

@@ -334,7 +334,7 @@ namespace Poker_MCCFRM
         }
         public List<PlayState> GetFirstActionStates()
         {
-            List<PlayState> gs = new List<PlayState>();
+            List<PlayState> gameStates = new List<PlayState>();
 
             // create one playstate child after chance
             int lastToMoveTemp = -1;
@@ -363,23 +363,19 @@ namespace Poker_MCCFRM
                 }
             }
 
+            List<Hand> startingHands = Utilities.GetStartingHandChart();
+
             for (int i = 0; i < 169; ++i)
             {
                 List<Tuple<ulong, ulong>> playerCardsNew = new List<Tuple<ulong, ulong>>();
                 List<ulong> tableCardsNew = new List<ulong>();
 
-                int[] cardsOutput = new int[2];
-                Global.indexer_2.unindex(Global.indexer_2.rounds - 1, i, cardsOutput);
-                Hand hand = new Hand();
-                hand.Cards.Add(new Card(cardsOutput[0]));
-                hand.Cards.Add(new Card(cardsOutput[1]));
-                playerCardsNew.Add(Tuple.Create(new Card(cardsOutput[0]).GetBit(),new Card(cardsOutput[1]).GetBit()));
-
-                gs.Add(new PlayState(newBettingRound, playerToMove, lastToMoveTemp, minRaiseTemp, playersInHand,
-                    stacks, bets, history, playerCardsNew, tableCardsNew, lastActions, isPlayerIn, true));
+                playerCardsNew.Add(Tuple.Create(startingHands[i].Cards[0].GetBit(), startingHands[i].Cards[1].GetBit()));
+                gameStates.Add(new PlayState(newBettingRound, playerToMove, lastToMoveTemp, minRaiseTemp, playersInHand,
+                stacks, bets, history, playerCardsNew, tableCardsNew, lastActions, isPlayerIn, true));
             }
 
-            return gs;
+            return gameStates;
         }
         public override bool IsPlayerInHand(int player)
         {
