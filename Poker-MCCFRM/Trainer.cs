@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 
 namespace Poker_MCCFRM
 {
@@ -285,13 +287,41 @@ namespace Poker_MCCFRM
                     Console.WriteLine("ALLIN Table");
                 }
 
+                Console.WriteLine("    2    3    4    5    6    7    8    9    T    J    Q    K    A (suited)");
                 for (int j = 0; j < gs.Count; ++j)
                 {
                     PlayState ps = gs[j];
                     Infoset infoset = ps.GetInfoset();
                     //List<float> sigma = infoset.CalculateStrategy();
                     List<float> phi = infoset.GetFinalStrategy();
+
+                    if (j % 13 == 0 && j + 1 < gs.Count)
+                    {
+                        if (j / 13 < 9)
+                            Console.Write((j / 13 + 2) + " ");
+                        else if (j / 13 == 9)
+                            Console.Write("J ");
+                        else if (j / 13 == 10)
+                            Console.Write("Q ");
+                        else if (j / 13 == 11)
+                            Console.Write("K ");
+                        else
+                            Console.Write("A ");
+                    }
+
+                    if (phi[i] <= 0.2)
+                        Console.ForegroundColor = ConsoleColor.DarkRed;
+                    else if (phi[i] <= 0.4)
+                        Console.ForegroundColor = ConsoleColor.Red;
+                    else if (phi[i] <= 0.6)
+                        Console.ForegroundColor = ConsoleColor.DarkRed;
+                    else if (phi[i] <= 0.8)
+                        Console.ForegroundColor = ConsoleColor.DarkGreen;
+                    else if (phi[i] <= 1.0)
+                        Console.ForegroundColor = ConsoleColor.Green;
+
                     Console.Write(phi[i].ToString("0.00") + " ");
+                    Console.ResetColor();
 
                     if ((j+1) % 13 == 0)
                         Console.WriteLine();

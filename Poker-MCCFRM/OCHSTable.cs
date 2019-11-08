@@ -129,6 +129,8 @@ namespace Poker_MCCFRM
                      progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / (169));
                  });
             }
+            TimeSpan elapsed = DateTime.UtcNow - start;
+            Console.WriteLine("Calculating opponent clusters completed in {0}", elapsed);
 
             Console.WriteLine("Calculated histograms: ");
             int[] cardsOutput = new int[2];
@@ -145,8 +147,6 @@ namespace Poker_MCCFRM
                 {
                     Console.Write(histogramsPreflop[i,j] + " ");
                 }
-                TimeSpan elapsed = DateTime.UtcNow - start;
-                Console.WriteLine("Calculating opponent clusters completed in {0}", elapsed);
             }
         }
         private static void ClusterPreflopHands()
