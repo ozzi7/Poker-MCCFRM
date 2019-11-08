@@ -87,7 +87,7 @@ namespace Poker_MCCFRM
                 });
             }
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("Generating River histograms completed in {0:0.00}s", elapsed.TotalSeconds);
+            Console.WriteLine("Generating Turn histograms completed in {0:0.00}s", elapsed.TotalSeconds);
         }
         private static void GenerateFlopHistograms(HandIndexer indexerFlop, HandIndexer indexerTurn)
         {
@@ -170,7 +170,7 @@ namespace Poker_MCCFRM
             // k-means clustering
             DateTime start = DateTime.UtcNow;
             Kmeans kmeans = new Kmeans();
-            turnIndices = kmeans.ClusterEMD(histogramsFlop, nofFlopBuckets, 4);
+            flopIndices = kmeans.ClusterEMD(histogramsFlop, nofFlopBuckets, 1);
 
             Console.WriteLine("Created the following clusters for the Flop: ");
 

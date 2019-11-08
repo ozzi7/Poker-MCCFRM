@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SnapCall;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -385,19 +386,22 @@ namespace Poker_MCCFRM
                 var binForm = new BinaryFormatter();
                 riverIndices = (int[])binForm.Deserialize(fileStream2);
             }
-            if (File.Exists(filenameRiverHistograms))
+            else
             {
-                Console.WriteLine("Loading river histograms from file {0}", filenameRiverHistograms);
-                using var fileStream = File.OpenRead(filenameRiverHistograms);
-                var binForm = new BinaryFormatter();
-                histogramsRiver = (float[,])binForm.Deserialize(fileStream);
-            }
-            if(File.Exists(filenameOppClusters))
-            {
-                Console.WriteLine("Loading flop opponent clusters from file {0}", filenameOppClusters);
-                using var fileStream = File.OpenRead(filenameOppClusters);
-                var binForm = new BinaryFormatter();
-                preflopIndices = (int[])binForm.Deserialize(fileStream);
+                if (File.Exists(filenameRiverHistograms))
+                {
+                    Console.WriteLine("Loading river histograms from file {0}", filenameRiverHistograms);
+                    using var fileStream = File.OpenRead(filenameRiverHistograms);
+                    var binForm = new BinaryFormatter();
+                    histogramsRiver = (float[,])binForm.Deserialize(fileStream);
+                }
+                if (File.Exists(filenameOppClusters))
+                {
+                    Console.WriteLine("Loading flop opponent clusters from file {0}", filenameOppClusters);
+                    using var fileStream = File.OpenRead(filenameOppClusters);
+                    var binForm = new BinaryFormatter();
+                    preflopIndices = (int[])binForm.Deserialize(fileStream);
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿/// Uses Poker Effective Hand Strength (EHS) algorithm to create a lookup table
 /// https://en.wikipedia.org/wiki/Poker_Effective_Hand_Strength_(EHS)_algorithm
 /// http://www.cs.virginia.edu/~evans/poker/wp-content/uploads/2011/02/opponent_modeling_in_poker_billings.pdf
+using SnapCall;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,8 +20,6 @@ namespace Poker_MCCFRM
         float[] EHSFlop = new float[1286792];
         float[] EHSTurn = new float[13960050];
         float[,] histogramsFlop = new float[1286792, 50];
-
-        int[] flopIndices; // mapping each canonical flop hand (5 cards) to a cluster
 
         public EHSTable(Evaluator evaluator, HandIndexer privFlopIndexer, HandIndexer privFlopTurnIndexer)
         {

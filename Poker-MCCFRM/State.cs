@@ -177,6 +177,12 @@ namespace Poker_MCCFRM
                         {
                             hand.Cards.Add(new Card(tableCards[j]));
                         }
+                        ulong cardsBitmask = 0uL;
+                        for (int k = 0; k < hand.Cards.Count; ++k)
+                        {
+                            cardsBitmask |= hand.Cards[k].GetBit();
+                        }
+                        handValues.Add(Global.handEvaluator.Evaluate(cardsBitmask));
                     }
                 }
                 // temphandval contains values of each players hand who is in
@@ -357,128 +363,22 @@ namespace Poker_MCCFRM
                 }
             }
 
-            // todo: wouldnt need to always copy
-            List<ulong> tableCardsNew = new List<ulong>(tableCards);
-
-            for (int j = 0; j < 14; j++)
+            for (int i = 0; i < 169; ++i)
             {
-                List<Tuple<ulong, ulong>> playerCardsNew = new List<Tuple<ulong, ulong>>(playerCards);
+                List<Tuple<ulong, ulong>> playerCardsNew = new List<Tuple<ulong, ulong>>();
+                List<ulong> tableCardsNew = new List<ulong>();
 
-                if (j == 0)
-                {
-                    for (int i = 0; i < Global.nofPlayers; ++i)
-                    {
-                        playerCardsNew.Add(Tuple.Create(new Card("Ac").GetBit(), new Card("Ad").GetBit()));
-                        // other player doesnt matter
-                    }
-                }
-                if (j == 1)
-                {
-                    for (int i = 0; i < Global.nofPlayers; ++i)
-                    {
-                        playerCardsNew.Add(Tuple.Create(new Card("Kh").GetBit(), new Card("Ks").GetBit()));
-                        // other player doesnt matter
-                    }
-                }
-                if (j == 2)
-                {
-                    for (int i = 0; i < Global.nofPlayers; ++i)
-                    {
-                        playerCardsNew.Add(Tuple.Create(new Card("Ac").GetBit(), new Card("Kc").GetBit()));
-                        // other player doesnt matter
-                    }
-                }
-                if (j == 3)
-                {
-                    for (int i = 0; i < Global.nofPlayers; ++i)
-                    {
-                        playerCardsNew.Add(Tuple.Create(new Card("Ac").GetBit(), new Card("Kh").GetBit()));
-                        // other player doesnt matter
-                    }
-                }
-                if (j == 4)
-                {
-                    for (int i = 0; i < Global.nofPlayers; ++i)
-                    {
-                        playerCardsNew.Add(Tuple.Create(new Card("Ac").GetBit(), new Card("Ts").GetBit()));
-                        // other player doesnt matter
-                    }
-                }
-                if (j == 5)
-                {
-                    for (int i = 0; i < Global.nofPlayers; ++i)
-                    {
-                        playerCardsNew.Add(Tuple.Create(new Card("6c").GetBit(), new Card("6d").GetBit()));
-                        // other player doesnt matter
-                    }
-                }
-                if (j == 6)
-                {
-                    for (int i = 0; i < Global.nofPlayers; ++i)
-                    {
-                        playerCardsNew.Add(Tuple.Create(new Card("6h").GetBit(), new Card("6s").GetBit()));
-                        // other player doesnt matter
-                    }
-                }
-                if (j == 7)
-                {
-                    for (int i = 0; i < Global.nofPlayers; ++i)
-                    {
-                        playerCardsNew.Add(Tuple.Create(new Card("7c").GetBit(), new Card("7d").GetBit()));
-                        // other player doesnt matter
-                    }
-                }
-                if (j == 8)
-                {
-                    for (int i = 0; i < Global.nofPlayers; ++i)
-                    {
-                        playerCardsNew.Add(Tuple.Create(new Card("7h").GetBit(), new Card("7s").GetBit()));
-                        // other player doesnt matter
-                    }
-                }
-                if (j == 9)
-                {
-                    for (int i = 0; i < Global.nofPlayers; ++i)
-                    {
-                        playerCardsNew.Add(Tuple.Create(new Card("4c").GetBit(), new Card("4d").GetBit()));
-                        // other player doesnt matter
-                    }
-                }
-                if (j == 10)
-                {
-                    for (int i = 0; i < Global.nofPlayers; ++i)
-                    {
-                        playerCardsNew.Add(Tuple.Create(new Card("2c").GetBit(), new Card("2d").GetBit()));
-                        // other player doesnt matter
-                    }
-                }
-                if (j == 11)
-                {
-                    for (int i = 0; i < Global.nofPlayers; ++i)
-                    {
-                        playerCardsNew.Add(Tuple.Create(new Card("2c").GetBit(), new Card("5d").GetBit()));
-                        // other player doesnt matter
-                    }
-                }
-                if (j == 12)
-                {
-                    for (int i = 0; i < Global.nofPlayers; ++i)
-                    {
-                        playerCardsNew.Add(Tuple.Create(new Card("Jc").GetBit(), new Card("3d").GetBit()));
-                        // other player doesnt matter
-                    }
-                }
-                if (j == 13)
-                {
-                    for (int i = 0; i < Global.nofPlayers; ++i)
-                    {
-                        playerCardsNew.Add(Tuple.Create(new Card("3c").GetBit(), new Card("7d").GetBit()));
-                        // other player doesnt matter
-                    }
-                }
+                int[] cardsOutput = new int[2];
+                Global.privIndexer.unindex(Global.privIndexer.rounds - 1, i, cardsOutput);
+                Hand hand = new Hand();
+                hand.Cards.Add(new Card(cardsOutput[0]));
+                hand.Cards.Add(new Card(cardsOutput[1]));
+                playerCardsNew.Add(Tuple.Create(new Card(cardsOutput[0]).GetBit(),new Card(cardsOutput[1]).GetBit()));
+
                 gs.Add(new PlayState(newBettingRound, playerToMove, lastToMoveTemp, minRaiseTemp, playersInHand,
                     stacks, bets, history, playerCardsNew, tableCardsNew, lastActions, isPlayerIn, true));
             }
+
             return gs;
         }
         public override bool IsPlayerInHand(int player)
@@ -813,7 +713,7 @@ namespace Poker_MCCFRM
             // Betting history R, A, CH, C, F
             // Player whose turn it is // not needed?
             // Cards of player whose turn it is
-            // community cards (and should it matter which cards are community and which arent?!)
+            // community cards
 
             if (infosetString == null)
             {
@@ -852,7 +752,7 @@ namespace Poker_MCCFRM
                 infosetString = historyString + cardString;
             }
  
-            Infoset infoset = null;
+            Infoset infoset;
             Global.nodeMap.TryGetValue(infosetString, out infoset);
             if (infoset != null)
             {

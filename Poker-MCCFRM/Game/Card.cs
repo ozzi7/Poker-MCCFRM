@@ -93,7 +93,7 @@ namespace Poker_MCCFRM
                 default: throw new ArgumentException("Card string suit not valid");
             }
         }
-        public Card(ulong bit) : this((int)Math.Log2(bit)+1)
+        public Card(ulong bit) : this((int)Math.Log2(bit))
         {
         }
         public int GetIndex()

@@ -21,7 +21,7 @@ namespace Poker_MCCFRM
         /// <returns></returns>
         public int[] ClusterEMD(float[,] data, int k, int nofRuns)
         {
-            Console.WriteLine("K-means (EMD) clustering {0} elements into {1} clusters with {2} restarts...", data.GetLength(0), k, nofRuns);
+            Console.WriteLine("K-means (EMD) clustering {0} elements into {1} clusters with {2} runs...", data.GetLength(0), k, nofRuns);
 
             DateTime start = DateTime.UtcNow;
 
@@ -148,7 +148,7 @@ namespace Poker_MCCFRM
         /// <returns></returns>
         public int[] ClusterL2(float[,] data, int k, int nofRuns)
         {
-            Console.WriteLine("K-means clustering (L2) {0} elements into {1} clusters with {2} restarts...", data.GetLength(0), k, nofRuns);
+            Console.WriteLine("K-means clustering (L2) {0} elements into {1} clusters with {2} runs...", data.GetLength(0), k, nofRuns);
 
             DateTime start = DateTime.UtcNow;
 

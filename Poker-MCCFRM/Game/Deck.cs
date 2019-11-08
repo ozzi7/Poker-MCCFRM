@@ -26,9 +26,9 @@ namespace Poker_MCCFRM
 
 		public void Shuffle(int from = 0)
 		{
-            for (int i = from; i < 52 - 1; i++) // from =position maybe
+            for (int i = from; i < 52 - 1; i++)
             {
-                int n = RandomGen.Next(position, 52);
+                int n = RandomGen.Next(from, 52);
                 ulong temp = cards[i]; // could skip if n == i
                 cards[i] = cards[n];
                 cards[n] = temp;
@@ -48,7 +48,6 @@ namespace Poker_MCCFRM
 		}
         public ulong Draw(int position)
         {
-            position++;
             return cards[position];
         }
     }

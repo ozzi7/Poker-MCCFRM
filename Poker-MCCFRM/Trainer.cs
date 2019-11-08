@@ -164,14 +164,14 @@ namespace Poker_MCCFRM
         {
             if (gs is TerminalState)
             {
-                //if (iteration % 10000 == 0)
-                //{
-                //    Console.WriteLine(gs.playerCards[0].Item1.ToString() + "" + gs.playerCards[0].Item2.ToString() + ", " +
-                //        gs.playerCards[1].Item1.ToString() + "" + gs.playerCards[1].Item2.ToString());
-                //    Console.WriteLine(string.Join(",", gs.history.ToArray()));
-                //    Console.WriteLine(gs.GetReward(0)+ ", " + gs.GetReward(1));
-                //    Console.WriteLine();
-                //}
+                if (iteration % 10000 == 0)
+                {
+                    //Console.WriteLine(new Card(gs.playerCards[0].Item1).ToString() + "" + new Card(gs.playerCards[0].Item2).ToString() + ", " +
+                    //    new Card(gs.playerCards[1].Item1).ToString() + "" + new Card(gs.playerCards[1].Item2).ToString());
+                    //Console.WriteLine(string.Join(",", gs.history.ToArray()));
+                    //Console.WriteLine(gs.GetReward(0) + ", " + gs.GetReward(1));
+                    //Console.WriteLine();
+                }
                 return gs.GetReward(traverser);
             }
             else if (!gs.IsPlayerInHand(traverser)) // we cant get the reward because this function is not implemented
@@ -262,8 +262,10 @@ namespace Poker_MCCFRM
                 //List<float> sigma = infoset.CalculateStrategy();
                 List<float> phi = infoset.GetFinalStrategy();
 
-                Console.Write(new Card(ps.playerCards[ps.playerToMove].Item1).ToString() +
-                    ps.playerCards[ps.playerToMove].Item2.ToString() + " ");
+                Hand hand = new Hand();
+                hand.Cards.Add(new Card(ps.playerCards[ps.playerToMove].Item1));
+                hand.Cards.Add(new Card(ps.playerCards[ps.playerToMove].Item2));
+                hand.PrintColoredCards(" ");
                 List<ACTION> actions = ps.GetValidActions();
 
                 for (int j = 0; j < actions.Count(); ++j)
@@ -278,15 +280,15 @@ namespace Poker_MCCFRM
                     }
                     if (actions[j] == ACTION.RAISE1)
                     {
-                        Console.Write("RAISE "+ Global.raises[0] + "*POT " + phi[j].ToString("0.00") + " ");
+                        Console.Write(Global.raises[0] + "*POT " + phi[j].ToString("0.00") + " ");
                     }
                     if (actions[j] == ACTION.RAISE2)
                     {
-                        Console.Write("RAISE " + Global.raises[1] + "*POT " + phi[j].ToString("0.00") + " ");
+                        Console.Write(Global.raises[1] + "*POT " + phi[j].ToString("0.00") + " ");
                     }
                     if (actions[j] == ACTION.RAISE3)
                     {
-                        Console.Write("RAISE " + Global.raises[2] + "*POT " + phi[j].ToString("0.00") + " ");
+                        Console.Write(Global.raises[2] + "*POT " + phi[j].ToString("0.00") + " ");
                     }
                     if (actions[j] == ACTION.ALLIN)
                     {

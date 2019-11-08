@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Poker_MCCFRM;
+using SnapCall;
 
 namespace Poker_MCCFRM
 {
@@ -13,6 +14,7 @@ namespace Poker_MCCFRM
         static void Main(string[] args)
         {
             Global.handEvaluator = new Evaluator();
+            Global.handEvaluator.Initialize();
             CalculateInformationAbstraction();
             Train();
         }
@@ -103,7 +105,6 @@ namespace Poker_MCCFRM
             Global.showdownIndexer = new HandIndexer(cardsPerRound);
             Console.WriteLine(Global.showdownIndexer.roundSize[2] + " non-isomorphic hands found");
 
-            Evaluator evaluator = new Evaluator();
             OCHS.Init(Global.privIndexer, Global.privFlopTurnRiver);
             EMDTable.Init(Global.privIndexer, Global.privFlopIndexer,
                 Global.privFlopTurnIndexer, Global.privFlopTurnRiver);
@@ -111,11 +112,18 @@ namespace Poker_MCCFRM
         private static void Train()
         {
             Console.WriteLine("Starting Monte Carlo Counterfactual Regret Minimization (MCCFRM)...");
-            Global.handEvaluator.Initialize();
 
+            /* ok
             int T = 100000000; // the total number of training rounds
-            int StrategyInterval = 100; // bb rounds before updating player strategy (recursive through tree)
-            int PruneThreshold = 1000000; // bb rounds after this time we stop checking all actions 
+            int StrategyInterval = 10; // bb rounds before updating player strategy (recursive through tree)
+            int PruneThreshold = 10000000; // bb rounds after this time we stop checking all actions 
+            int LCFRThreshold = 500000; // bb rounds to discount old regrets
+            int DiscountInterval = 100000; // bb rounds, discount values periodically but not every round
+            int SaveToDiskInterval = 1000;*/
+
+            long T = 2000000000000000000; // the total number of training rounds
+            int StrategyInterval = 1; // bb rounds before updating player strategy (recursive through tree)
+            int PruneThreshold = 10000000; // bb rounds after this time we stop checking all actions 
             int LCFRThreshold = 500000; // bb rounds to discount old regrets
             int DiscountInterval = 10000; // bb rounds, discount values periodically but not every round
             int SaveToDiskInterval = 1000;

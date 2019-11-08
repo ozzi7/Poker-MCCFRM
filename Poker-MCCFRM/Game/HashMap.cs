@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace Poker_MCCFRM
+namespace SnapCall
 {
     [Serializable]
     public class HashMapEntry

@@ -6,8 +6,9 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Poker_MCCFRM
+namespace SnapCall
 {
+    using Poker_MCCFRM;
     public class Evaluator
 	{
         private bool loaded = false;
@@ -235,7 +236,7 @@ namespace Poker_MCCFRM
 				for (int i = 0; i < iterations; i++)
 				{
 					if (deck.CardsRemaining < 13) deck.Shuffle();
-					evaluationSum += handRankMap[bitmap | deck.Draw(3)];
+					evaluationSum += handRankMap[bitmap | deck.Draw(3)]; // TODO: this uses an old draw method
 				}
 
 				monteCarloMap[bitmap] = evaluationSum / (ulong)iterations;
