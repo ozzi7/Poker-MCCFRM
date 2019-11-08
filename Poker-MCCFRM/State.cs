@@ -369,7 +369,7 @@ namespace Poker_MCCFRM
                 List<ulong> tableCardsNew = new List<ulong>();
 
                 int[] cardsOutput = new int[2];
-                Global.privIndexer.unindex(Global.privIndexer.rounds - 1, i, cardsOutput);
+                Global.indexer_2.unindex(Global.indexer_2.rounds - 1, i, cardsOutput);
                 Hand hand = new Hand();
                 hand.Cards.Add(new Card(cardsOutput[0]));
                 hand.Cards.Add(new Card(cardsOutput[1]));
@@ -731,22 +731,22 @@ namespace Poker_MCCFRM
                 string cardString = "";
                 if(tableCards.Count == 0)
                 {
-                    long index = Global.privIndexer.indexLast(cardArray);
+                    long index = Global.indexer_2.indexLast(cardArray);
                     cardString += "Preflop" + index.ToString();
                 }
                 else if (tableCards.Count == 3)
                 {
-                    long index = EMDTable.flopIndices[Global.privFlopIndexer.indexLast(cardArray)];
+                    long index = EMDTable.flopIndices[Global.indexer_2_3.indexLast(cardArray)];
                     cardString += "Flop" + index.ToString();
                 }
                 else if (tableCards.Count == 4)
                 {
-                    long index = EMDTable.turnIndices[Global.privFlopTurnIndexer.indexLast(cardArray)];
+                    long index = EMDTable.turnIndices[Global.indexer_2_4.indexLast(cardArray)];
                     cardString += "Turn" + index.ToString();
                 }
                 else
                 {
-                    long index = OCHS.riverIndices[Global.privFlopTurnRiver.indexLast(cardArray)];
+                    long index = OCHSTable.riverIndices[Global.indexer_2_5.indexLast(cardArray)];
                     cardString += "River" + index.ToString();
                 }
                 infosetString = historyString + cardString;

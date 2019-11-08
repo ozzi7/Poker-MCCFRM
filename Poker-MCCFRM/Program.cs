@@ -50,64 +50,28 @@ namespace Poker_MCCFRM
         {
             Console.WriteLine("Calculating information abstractions... ");
 
-            Console.Write("Creating Public Flop Index... ");
-            int[] cardsPerRound = new int[1] { 3 };
-            Global.flopIndexer = new HandIndexer(cardsPerRound);
-            Console.WriteLine(Global.flopIndexer.roundSize[0] + " non-isomorphic hands found");
-
             Console.Write("Creating Private Hand Index (2 cards)... ");
-            cardsPerRound = new int[1] { 2 };
-            Global.privIndexer = new HandIndexer(cardsPerRound);
-            Console.WriteLine(Global.privIndexer.roundSize[0] + " non-isomorphic hands found");
+            Global.indexer_2 = new HandIndexer(new int[1] { 2 });
+            Console.WriteLine(Global.indexer_2.roundSize[0] + " non-isomorphic hands found");
 
             Console.Write("Creating Private + Flop Index (2 & 3 cards)... ");
-            cardsPerRound = new int[2] { 2, 3 };
-            Global.privFlopIndexer = new HandIndexer(cardsPerRound);
-            Console.WriteLine(Global.privFlopIndexer.roundSize[1] + " non-isomorphic hands found");
+            Global.indexer_2_3 = new HandIndexer(new int[2] { 2, 3 });
+            Console.WriteLine(Global.indexer_2_3.roundSize[1] + " non-isomorphic hands found");
 
             Console.Write("Creating Private + Flop + Turn Index (2 & 4 cards)... ");
-            cardsPerRound = new int[2] { 2, 4 };
-            Global.privFlopTurnIndexer = new HandIndexer(cardsPerRound);
-            Console.WriteLine(Global.privFlopTurnIndexer.roundSize[1] + " non-isomorphic hands found");
-
-            Console.Write("Creating Private + Flop + Turn Index (2 & 3 & 1 cards)... ");
-            cardsPerRound = new int[3] { 2, 3, 1 };
-            Global.privFlopTurnIndexer2 = new HandIndexer(cardsPerRound);
-            Console.WriteLine(Global.privFlopTurnIndexer2.roundSize[2] + " non-isomorphic hands found");
+            Global.indexer_2_4 = new HandIndexer(new int[2] { 2, 4 });
+            Console.WriteLine(Global.indexer_2_4.roundSize[1] + " non-isomorphic hands found");
 
             Console.Write("Creating Private + Flop + Turn + River Index (2 & 5 cards)... ");
-            cardsPerRound = new int[2] { 2, 5 };
-            Global.privFlopTurnRiver = new HandIndexer(cardsPerRound);
-            Console.WriteLine(Global.privFlopTurnRiver.roundSize[1] + " non-isomorphic hands found");
-
-            Console.Write("Creating Private + Flop + Turn + River Index (2 & 3 & 1 & 1 cards)... ");
-            cardsPerRound = new int[4] { 2, 3, 1, 1 };
-            Global.privFlopTurnRiver2 = new HandIndexer(cardsPerRound);
-            Console.WriteLine(Global.privFlopTurnRiver2.roundSize[3] + " non-isomorphic hands found");
-
-            Console.Write("Creating 5 card index... ");
-            cardsPerRound = new int[1] { 5 };
-            Global.fiveCardIndexer = new HandIndexer(cardsPerRound);
-            Console.WriteLine(Global.fiveCardIndexer.roundSize[0] + " non-isomorphic hands found");
-
-            Console.Write("Creating 6 card index... ");
-            cardsPerRound = new int[1] { 6 };
-            Global.sixCardIndexer = new HandIndexer(cardsPerRound);
-            Console.WriteLine(Global.sixCardIndexer.roundSize[0] + " non-isomorphic hands found");
-
-            Console.Write("Creating 7 card index... ");
-            cardsPerRound = new int[1] { 7 };
-            Global.sevenCardIndexer = new HandIndexer(cardsPerRound);
-            Console.WriteLine(Global.sevenCardIndexer.roundSize[0] + " non-isomorphic hands found");
+            Global.indexer_2_5 = new HandIndexer(new int[2] { 2, 5 });
+            Console.WriteLine(Global.indexer_2_5.roundSize[1] + " non-isomorphic hands found");
 
             Console.Write("Creating 2 + 5 + 2 card index... ");
-            cardsPerRound = new int[3] { 2, 5, 2 };
-            Global.showdownIndexer = new HandIndexer(cardsPerRound);
-            Console.WriteLine(Global.showdownIndexer.roundSize[2] + " non-isomorphic hands found");
+            Global.indexer_2_5_2 = new HandIndexer(new int[3] { 2, 5, 2 });
+            Console.WriteLine(Global.indexer_2_5_2.roundSize[2] + " non-isomorphic hands found");
 
-            OCHS.Init(Global.privIndexer, Global.privFlopTurnRiver);
-            EMDTable.Init(Global.privIndexer, Global.privFlopIndexer,
-                Global.privFlopTurnIndexer, Global.privFlopTurnRiver);
+            OCHSTable.Init();
+            EMDTable.Init();
         }
         private static void Train()
         {

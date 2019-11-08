@@ -135,7 +135,7 @@ namespace Poker_MCCFRM
             }
             Console.WriteLine("Best distance found: " + (double)recordDistance/ 1000000.0);
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("K-means clustering (EMD) completed in {0:0.00}s", elapsed.TotalSeconds);
+            Console.WriteLine("K-means clustering (EMD) completed in {0}", elapsed);
 
             // print starting hand chart
             return recordCenters;
@@ -261,7 +261,7 @@ namespace Poker_MCCFRM
             }
             Console.WriteLine("Best distance found: " + (double)recordDistance / 1000000.0);
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("K-means clustering (L2) completed in {0:0.00}s", elapsed.TotalSeconds);
+            Console.WriteLine("K-means clustering (L2) completed in {0}", elapsed);
 
             // print starting hand chart
             return recordCenters;
@@ -291,7 +291,7 @@ namespace Poker_MCCFRM
             {
                 totalDistance += (double)(data[index1, i] - centers[index2, i])* (double)(data[index1, i] - centers[index2, i]);
             }
-            return Math.Sqrt(totalDistance);
+            return Math.Sqrt(totalDistance); // we don't gain much by omitting the squareroot because EMD is used for the larger buckets
         }
     }
 }

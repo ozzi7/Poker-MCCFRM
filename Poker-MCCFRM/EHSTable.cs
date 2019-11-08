@@ -1,13 +1,12 @@
 ﻿/// Uses Poker Effective Hand Strength (EHS) algorithm to create a lookup table
 /// https://en.wikipedia.org/wiki/Poker_Effective_Hand_Strength_(EHS)_algorithm
 /// http://www.cs.virginia.edu/~evans/poker/wp-content/uploads/2011/02/opponent_modeling_in_poker_billings.pdf
+/// TODO: EHSTable not used currently
+/// 
 using SnapCall;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
