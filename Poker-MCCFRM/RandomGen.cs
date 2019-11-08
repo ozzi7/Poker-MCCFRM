@@ -25,5 +25,9 @@ namespace Poker_MCCFRM
         {
             return Random.Value.NextDouble();
         }
+        public static float NextFloat()
+        {
+            return (float)Random.Value.NextDouble();
+        }
     }
 }

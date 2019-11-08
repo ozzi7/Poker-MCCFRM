@@ -16,7 +16,7 @@ namespace Poker_MCCFRM
 
         // currently each round has the same raise values available
         // the values are multiples of the current pot
-        // if new elements are added here then the code must be adjusted in other places currently TODO
+        // if new elements are added then the code must be adjusted in other places currently TODO
         public static List<float> raises = new List<float>() { 2f, 3f, 5.0f }; 
         public const int buyIn = 200;
         public const int nofPlayers = 2; // !=2 not tested yet TODO
@@ -35,7 +35,7 @@ namespace Poker_MCCFRM
         public const int nofMCSimsPerPreflopHand = 100000;
         // for the river, determines the river histogram size (in theory could be up to 169 but will be very slow)
         public const int nofOpponentClusters = 8;
-        // this is used to create the nofOpponentClusters can be increased with little time penalty because the clustering for 169 hands is very fast
+        // this is used to create the nofOpponentClusters, it can be increased with little time penalty because the clustering for 169 hands is very fast
         public const int preflopHistogramSize = 50;
         
         // dont change

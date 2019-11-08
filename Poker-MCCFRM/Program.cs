@@ -14,7 +14,6 @@ namespace Poker_MCCFRM
         static void Main(string[] args)
         {
             Global.handEvaluator = new Evaluator();
-            Global.handEvaluator.Initialize();
             CalculateInformationAbstraction();
             Train();
         }
@@ -85,12 +84,12 @@ namespace Poker_MCCFRM
             int DiscountInterval = 100000; // bb rounds, discount values periodically but not every round
             int SaveToDiskInterval = 1000;*/
 
-            long T = 2000000000000000000; // the total number of training rounds
-            int StrategyInterval = 1; // bb rounds before updating player strategy (recursive through tree)
-            int PruneThreshold = 10000000; // bb rounds after this time we stop checking all actions 
-            int LCFRThreshold = 500000; // bb rounds to discount old regrets
-            int DiscountInterval = 10000; // bb rounds, discount values periodically but not every round
-            int SaveToDiskInterval = 1000;
+            long T = 2000000000000000000; // the total number of training rounds, might as well use while true...
+            long StrategyInterval = 1; // bb rounds before updating player strategy (recursive through tree) 10k
+            long PruneThreshold = 50000000; // bb rounds after this time we stop checking all actions, 200 minutes
+            long LCFRThreshold = 10000000; // bb rounds when to stop discounting old regrets, no clue what it should be
+            long DiscountInterval = 1000000; // bb rounds, discount values periodically but not every round, 10 minutes
+            long SaveToDiskInterval = 1000; // not used currently during trial runs
 
             Parallel.For(0, Global.NOF_THREADS,
                   index => {
@@ -100,22 +99,20 @@ namespace Poker_MCCFRM
                       {
                           if (t % 10000 == 1 && index == 0) // implement progress bar later
                           {
-                              Console.WriteLine("Training steps " + ((t - 1)*Global.NOF_THREADS).ToString() + "/"+T);
+                              Console.WriteLine("Training steps " + ((t - 1) * Global.NOF_THREADS).ToString() + "/" + T);
+                              trainer.PrintStatistics();
                               trainer.PrintStartingHandsChart();
                               Console.WriteLine();
                           }
-                          if (t % StrategyInterval == 0 && index == 0)
+                          for (int traverser = 0; traverser < Global.nofPlayers; traverser++) // traverser 
                           {
-                              for (int traverser = 0; traverser < Global.nofPlayers; traverser++)
+                              if (t % StrategyInterval == 0 && index == 0)
                               {
                                   trainer.UpdateStrategy(traverser);
                               }
-                          }
-                          for (int traverser = 0; traverser < Global.nofPlayers; traverser++)
-                          {
                               if (t > PruneThreshold)
                               {
-                                  float q = RandomGen.Next(0, 1);
+                                  float q = RandomGen.NextFloat();
                                   if (q < 0.05)
                                   {
                                       trainer.TraverseMCCFR(traverser, t);
@@ -129,18 +126,16 @@ namespace Poker_MCCFRM
                               {
                                   trainer.TraverseMCCFR(traverser, t);
                               }
-                          }
-                          if (t < LCFRThreshold && t % DiscountInterval == 0 && index == 0)
-                          {
-                              float d = ((float)t / DiscountInterval) / ((float)t / DiscountInterval + 1);
-                              for (int i = 0; i < Global.nofPlayers; i++) // update regrets, etc for all players
+                              if (t % SaveToDiskInterval == 0 && index == 0) // allow only one thread to do saving
                               {
-                                  trainer.DiscountInfosets(d);
+                                  trainer.SaveToDisk();
                               }
                           }
-                          if (t % SaveToDiskInterval == 0)
+                          // discount all infosets (for all players)
+                          if (t < LCFRThreshold && t % DiscountInterval == 0 && index == 0) // allow only one thread to do discounting
                           {
-                              trainer.SaveToDisk();
+                              float d = ((float)t / DiscountInterval) / ((float)t / DiscountInterval + 1);
+                              trainer.DiscountInfosets(d);
                           }
                       }
                   });

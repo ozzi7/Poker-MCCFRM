@@ -298,5 +298,56 @@ namespace Poker_MCCFRM
                 Console.WriteLine();
             }
         }
+        public void PrintStatistics()
+        {
+            Console.WriteLine("Number of infosets: " + Global.nodeMap.Count);
+
+            ResetGame();
+            List<PlayState> gs = ((ChanceState)rootState).GetFirstActionStates();
+
+            foreach (PlayState ps in gs)
+            {
+                Infoset infoset = ps.GetInfoset();
+
+                Hand hand = new Hand();
+                hand.Cards.Add(new Card(ps.playerCards[ps.playerToMove].Item1));
+                hand.Cards.Add(new Card(ps.playerCards[ps.playerToMove].Item2));
+                hand.PrintColoredCards(" ");
+                List<ACTION> actions = ps.GetValidActions();
+
+                for (int j = 0; j < actions.Count(); ++j)
+                {
+                    if (actions[j] == ACTION.FOLD)
+                    {
+                        Console.Write("FOLD: ");
+                    }
+                    if (actions[j] == ACTION.CALL)
+                    {
+                        Console.Write("CALL: ");
+                    }
+                    if (actions[j] == ACTION.RAISE1)
+                    {
+                        Console.Write(Global.raises[0] + "*POT ");
+                    }
+                    if (actions[j] == ACTION.RAISE2)
+                    {
+                        Console.Write(Global.raises[1] + "*POT ");
+                    }
+                    if (actions[j] == ACTION.RAISE3)
+                    {
+                        Console.Write(Global.raises[2] + "*POT ");
+                    }
+                    if (actions[j] == ACTION.ALLIN)
+                    {
+                        Console.Write("ALLIN: ");
+                    }
+                    Console.Write("Regret: " + infoset.regret[j].ToString("0.00") + " ");
+                    Console.Write("Strategy: " + infoset.strategy[j].ToString("0.00") + " ");
+                    Console.Write("ActionCounter: " + infoset.actionCounter[j].ToString("0.00") + " ");
+                    Console.WriteLine();
+                }
+                Console.WriteLine();
+            }
+        }
     }
 }

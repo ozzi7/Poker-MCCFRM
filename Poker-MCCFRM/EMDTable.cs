@@ -136,7 +136,7 @@ namespace Poker_MCCFRM
             // k-means clustering
             DateTime start = DateTime.UtcNow;
             Kmeans kmeans = new Kmeans();
-            turnIndices = kmeans.ClusterEMD(histogramsTurn, Global.nofTurnBuckets, 4);
+            turnIndices = kmeans.ClusterEMD(histogramsTurn, Global.nofTurnBuckets, 1);
 
             TimeSpan elapsed = DateTime.UtcNow - start;
             Console.WriteLine("Turn clustering completed in {0}", elapsed);

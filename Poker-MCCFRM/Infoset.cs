@@ -11,6 +11,7 @@ namespace Poker_MCCFRM
         public float[] regret;
         public float[] strategy;
         public float[] actionCounter;
+        public int visitCount = 0;
 
         public Infoset()
         {

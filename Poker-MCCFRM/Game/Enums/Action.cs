@@ -10,7 +10,7 @@ namespace Poker_MCCFRM
     {
         NONE,
         FOLD,
-        //CHECK,
+        //CHECK, combined with CALL, basically calling a 0 raise
         CALL,
         RAISE,
         RAISE1,

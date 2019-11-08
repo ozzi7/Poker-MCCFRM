@@ -15,15 +15,11 @@ namespace SnapCall
 		private HashMap handRankMap;
 		private Dictionary<ulong, ulong> monteCarloMap = null;
 
-		public Evaluator()
-		{
-           
-		}
-
-        public void Initialize(
-            string fileName = "HandValueTable.txt",
-            double loadFactor = 6.0)
+        public Evaluator()
         {
+            string fileName = "HandValueTable.txt";
+            double loadFactor = 6.0;
+
             if (loaded) return;
             if (monteCarloMap != null)
                 return;
@@ -72,6 +68,7 @@ namespace SnapCall
             Console.WriteLine("Hand evaluator setup completed in {0:0.00}s", elapsed.TotalSeconds);
             loaded = true;
         }
+
 		public int Evaluate(ulong bitmap)
 		{
 			// Check if 2-card monte carlo map has an evaluation for this hand
