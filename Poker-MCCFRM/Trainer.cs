@@ -297,8 +297,10 @@ namespace Poker_MCCFRM
 
                     if (j % 13 == 0 && j + 1 < gs.Count)
                     {
-                        if (j / 13 < 9)
+                        if (j / 13 < 8)
                             Console.Write((j / 13 + 2) + " ");
+                        else if (j / 13 == 8)
+                            Console.Write("T ");
                         else if (j / 13 == 9)
                             Console.Write("J ");
                         else if (j / 13 == 10)
@@ -331,15 +333,18 @@ namespace Poker_MCCFRM
                 Console.WriteLine();
             }
         }
-        public void PrintStatistics()
+        public void PrintStatistics(long iterations)
         {
-            Console.WriteLine("Number of infosets: " + Global.nodeMap.Count);
-
             ResetGame();
             List<PlayState> gs = ((ChanceState)rootState).GetFirstActionStates();
 
+            int maxOutput = 10;
             foreach (PlayState ps in gs)
             {
+                if (maxOutput < 0)
+                    break;
+                maxOutput--;
+
                 Infoset infoset = ps.GetInfoset();
 
                 Hand hand = new Hand();
@@ -380,6 +385,8 @@ namespace Poker_MCCFRM
                 }
                 Console.WriteLine();
             }
+            Console.WriteLine("Number of infosets: " + Global.nodeMap.Count);
+            Console.WriteLine("Number of training iterations: " + iterations);
         }
     }
 }

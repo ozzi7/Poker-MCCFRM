@@ -104,6 +104,10 @@ namespace Poker_MCCFRM
         {
             return 1ul << GetIndex();
         }
+        public static int GetIndexFromBitmask(ulong bitmask)
+        {
+            return (int)Math.Log2(bitmask);
+        }
         public override string ToString()
 		{
 			char[] ranks = "23456789TJQKA".ToCharArray();

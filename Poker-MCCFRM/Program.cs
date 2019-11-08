@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Poker_MCCFRM;
 using SnapCall;
@@ -76,32 +77,30 @@ namespace Poker_MCCFRM
         {
             Console.WriteLine("Starting Monte Carlo Counterfactual Regret Minimization (MCCFRM)...");
 
-            /* ok
-            int T = 100000000; // the total number of training rounds
-            int StrategyInterval = 10; // bb rounds before updating player strategy (recursive through tree)
-            int PruneThreshold = 10000000; // bb rounds after this time we stop checking all actions 
-            int LCFRThreshold = 500000; // bb rounds to discount old regrets
-            int DiscountInterval = 100000; // bb rounds, discount values periodically but not every round
-            int SaveToDiskInterval = 1000;*/
-
-            long T = 2000000000000000000; // the total number of training rounds, might as well use while true...
             long StrategyInterval = 100/Global.NOF_THREADS; ; // bb rounds before updating player strategy (recursive through tree) 10k
             long PruneThreshold = 50000000/Global.NOF_THREADS; // bb rounds after this time we stop checking all actions, 200 minutes
             long LCFRThreshold = 10000000/Global.NOF_THREADS; // bb rounds when to stop discounting old regrets, no clue what it should be
             long DiscountInterval = 1000000/Global.NOF_THREADS; // bb rounds, discount values periodically but not every round, 10 minutes
-            long SaveToDiskInterval = 100000/Global.NOF_THREADS; // not used currently during trial runs
+            long SaveToDiskInterval = 10000000/Global.NOF_THREADS; // not used currently during trial runs
 
-            Parallel.For(0, Global.NOF_THREADS,
-                  index => {
+            long sharedLoopCounter = 0;
+
+                Parallel.For(0, Global.NOF_THREADS,
+                  index =>
+                  {
                       Trainer trainer = new Trainer(index);
 
-                      for (int t = 1; t < T; t++) // bb rounds
+                      for (int t = 1; ; t++) // bb rounds
                       {
+                          if (t % 1000 == 0)
+                          {
+                              Interlocked.Add(ref sharedLoopCounter, 1000);
+                          }
                           if (t % 10000 == 1 && index == 0) // implement progress bar later
                           {
-                              Console.WriteLine("Training steps " + ((t - 1) * Global.NOF_THREADS).ToString() + "/" + T);
-                              trainer.PrintStatistics();
+                              Console.WriteLine("Training steps " + sharedLoopCounter);
                               trainer.PrintStartingHandsChart();
+                              trainer.PrintStatistics(sharedLoopCounter);
                               Console.WriteLine();
                           }
                           for (int traverser = 0; traverser < Global.nofPlayers; traverser++) // traverser 
@@ -139,6 +138,7 @@ namespace Poker_MCCFRM
                           }
                       }
                   });
+            
         }
     }
 }

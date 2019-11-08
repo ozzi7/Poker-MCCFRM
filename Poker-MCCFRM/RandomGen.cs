@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Haus.Math;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,14 +13,15 @@ namespace Poker_MCCFRM
     /// </summary>
     public static class RandomGen
     {
-        private static readonly ThreadLocal<Random> Random =
-            new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref seed)));
+        private static readonly ThreadLocal<XorShiftRandom> Random =
+            new ThreadLocal<XorShiftRandom>(() => new XorShiftRandom((ulong)Interlocked.Increment(ref seed)));
 
         private static int seed = Environment.TickCount;
 
         public static int Next(int minValueInclusive, int maxValueExclusive)
         {
-            return Random.Value.Next(minValueInclusive, maxValueExclusive);
+            // can doubles be rounded up potentially? then this would need a math.min(_ , maxvalue -1 ) 
+            return minValueInclusive + (int)(Random.Value.NextDouble()*(maxValueExclusive - minValueInclusive));
         }
         public static double NextDouble()
         {

@@ -170,17 +170,10 @@ namespace Poker_MCCFRM
                 {
                     if (isPlayerIn[i])
                     {
-                        Hand hand = new Hand();
-                        hand.Cards.Add(new Card(playerCards[i].Item1));
-                        hand.Cards.Add(new Card(playerCards[i].Item2));
-                        for (int j = 0; j < tableCards.Count(); ++j)
+                        ulong cardsBitmask = playerCards[i].Item1 + playerCards[i].Item2;
+                        for (int k = 0; k < tableCards.Count; ++k)
                         {
-                            hand.Cards.Add(new Card(tableCards[j]));
-                        }
-                        ulong cardsBitmask = 0uL;
-                        for (int k = 0; k < hand.Cards.Count; ++k)
-                        {
-                            cardsBitmask |= hand.Cards[k].GetBit();
+                            cardsBitmask |= tableCards[k];
                         }
                         handValues.Add(Global.handEvaluator.Evaluate(cardsBitmask));
                     }
@@ -284,17 +277,17 @@ namespace Poker_MCCFRM
                     }
                     break;
                 case 1: // deal flop
-                    Global.Deck.Value.Shuffle(Global.nofPlayers * 2); // not necessarily needed, check
+                    //Global.Deck.Value.Shuffle(Global.nofPlayers * 2); // not necessarily needed, check
                     tableCardsNew.Add(Global.Deck.Value.Draw(Global.nofPlayers * 2 + 0));
                     tableCardsNew.Add(Global.Deck.Value.Draw(Global.nofPlayers * 2 + 1));
                     tableCardsNew.Add(Global.Deck.Value.Draw(Global.nofPlayers * 2 + 2));
                     break;
                 case 2: // deal turn
-                    Global.Deck.Value.Shuffle(Global.nofPlayers * 2 + 3);
+                    //Global.Deck.Value.Shuffle(Global.nofPlayers * 2 + 3);
                     tableCardsNew.Add(Global.Deck.Value.Draw(Global.nofPlayers * 2 + 3));
                     break;
                 case 3: // deal river
-                    Global.Deck.Value.Shuffle(Global.nofPlayers * 2 + 4);
+                    //Global.Deck.Value.Shuffle(Global.nofPlayers * 2 + 4);
                     tableCardsNew.Add(Global.Deck.Value.Draw(Global.nofPlayers * 2 + 4));
                     break;
             }
@@ -712,11 +705,11 @@ namespace Poker_MCCFRM
                 string historyString = string.Join(",", history.ToArray());
 
                 List<int> cards = new List<int>();
-                cards.Add(new Card(playerCards[playerToMove].Item1).GetIndex());
-                cards.Add(new Card(playerCards[playerToMove].Item2).GetIndex());
+                cards.Add(Card.GetIndexFromBitmask(playerCards[playerToMove].Item1));
+                cards.Add(Card.GetIndexFromBitmask(playerCards[playerToMove].Item2));
                 for (int i = 0; i < tableCards.Count; ++i)
                 {
-                    cards.Add(new Card(tableCards[i]).GetIndex());
+                    cards.Add(Card.GetIndexFromBitmask(tableCards[i]));
                 }
                 int[] cardArray = cards.ToArray();
 
