@@ -38,13 +38,11 @@ namespace Poker_MCCFRM
             }
             else
             {
-                evaluator.Initialize();
                 Calculate5Cards(evaluator, privFlopIndexer);
                 Calculate6Cards(evaluator, privFlopTurnIndexer);
 
                 SaveToFile();
             }
-            evaluator.Initialize();
             CalculateFlopHistograms(evaluator, privFlopIndexer);
             ClusterFlop(privFlopIndexer);
         }

@@ -9,9 +9,7 @@ namespace Poker_MCCFRM
     public class Infoset
     {
         public float[] regret;
-        public float[] strategy;
         public float[] actionCounter;
-        public int visitCount = 0;
 
         public Infoset()
         {
@@ -22,7 +20,6 @@ namespace Poker_MCCFRM
             {
                 // chance node
                 regret = new float[actions];
-                strategy = new float[actions];
                 actionCounter = new float[actions];
             }
         }

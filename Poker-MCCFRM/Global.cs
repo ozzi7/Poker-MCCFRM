@@ -20,8 +20,8 @@ namespace Poker_MCCFRM
         public static List<float> raises = new List<float>() { 2f, 3f, 5.0f }; 
         public const int buyIn = 200;
         public const int nofPlayers = 2; // !=2 not tested yet TODO
-        public const int C = -300000000;
-        public const int regretFloor = -310000000;
+        public const int C = -100000;
+        public const int regretFloor = -110000;
 
         public const int BB = 2;
         public const int SB = 1;

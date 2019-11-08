@@ -312,7 +312,7 @@ namespace Poker_MCCFRM
                 Hand hand = new Hand();
                 hand.Cards.Add(new Card(ps.playerCards[ps.playerToMove].Item1));
                 hand.Cards.Add(new Card(ps.playerCards[ps.playerToMove].Item2));
-                hand.PrintColoredCards(" ");
+                hand.PrintColoredCards("\n");
                 List<ACTION> actions = ps.GetValidActions();
 
                 for (int j = 0; j < actions.Count(); ++j)
@@ -342,7 +342,6 @@ namespace Poker_MCCFRM
                         Console.Write("ALLIN: ");
                     }
                     Console.Write("Regret: " + infoset.regret[j].ToString("0.00") + " ");
-                    Console.Write("Strategy: " + infoset.strategy[j].ToString("0.00") + " ");
                     Console.Write("ActionCounter: " + infoset.actionCounter[j].ToString("0.00") + " ");
                     Console.WriteLine();
                 }

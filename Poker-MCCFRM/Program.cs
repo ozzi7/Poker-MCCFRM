@@ -17,7 +17,7 @@ namespace Poker_MCCFRM
             CalculateInformationAbstraction();
             Train();
         }
-        private static void testRandom(HandIndexer indexer)
+        private static void handEvaluatorTest(HandIndexer indexer)
         {
             int totalCards = 0;
             for (int i = 0; i < indexer.rounds; ++i)
@@ -85,11 +85,11 @@ namespace Poker_MCCFRM
             int SaveToDiskInterval = 1000;*/
 
             long T = 2000000000000000000; // the total number of training rounds, might as well use while true...
-            long StrategyInterval = 1; // bb rounds before updating player strategy (recursive through tree) 10k
-            long PruneThreshold = 50000000; // bb rounds after this time we stop checking all actions, 200 minutes
-            long LCFRThreshold = 10000000; // bb rounds when to stop discounting old regrets, no clue what it should be
-            long DiscountInterval = 1000000; // bb rounds, discount values periodically but not every round, 10 minutes
-            long SaveToDiskInterval = 1000; // not used currently during trial runs
+            long StrategyInterval = 100/Global.NOF_THREADS; ; // bb rounds before updating player strategy (recursive through tree) 10k
+            long PruneThreshold = 50000000/Global.NOF_THREADS; // bb rounds after this time we stop checking all actions, 200 minutes
+            long LCFRThreshold = 10000000/Global.NOF_THREADS; // bb rounds when to stop discounting old regrets, no clue what it should be
+            long DiscountInterval = 1000000/Global.NOF_THREADS; // bb rounds, discount values periodically but not every round, 10 minutes
+            long SaveToDiskInterval = 100000/Global.NOF_THREADS; // not used currently during trial runs
 
             Parallel.For(0, Global.NOF_THREADS,
                   index => {

@@ -657,7 +657,7 @@ namespace Poker_MCCFRM
             // raises
             if (isBettingOpen)
             {
-                int raise = -1;
+                int raise;
                 for (int i = 0; i < Global.raises.Count; ++i)
                 {
                     raise = (int)(Global.raises[i] * pot);
@@ -698,11 +698,7 @@ namespace Poker_MCCFRM
         }
         public override bool IsPlayerTurn(int player)
         {
-            if (playerToMove == player)
-            {
-                return true;
-            }
-            return false;
+            return playerToMove == player;
         }
         public override bool IsPlayerInHand(int player)
         {
@@ -751,9 +747,8 @@ namespace Poker_MCCFRM
                 }
                 infosetString = historyString + cardString;
             }
- 
-            Infoset infoset;
-            Global.nodeMap.TryGetValue(infosetString, out infoset);
+
+            Global.nodeMap.TryGetValue(infosetString, out Infoset infoset);
             if (infoset != null)
             {
                 return infoset;
