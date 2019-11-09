@@ -44,7 +44,7 @@ namespace Poker_MCCFRM
 
         public string infosetString;
         public List<ACTION> history = new List<ACTION>();
-        public List<ACTION> lastActions = new List<ACTION>();
+        public ACTION[] lastActions = new ACTION[Global.nofPlayers];
 
         public int GetNextPlayer()
         {
@@ -123,7 +123,7 @@ namespace Poker_MCCFRM
     {
         private bool rewardGenerated = false;
         public TerminalState(int[] stacks, int[] bets, List<ACTION> history,
-             List<Tuple<ulong, ulong>> playerCards, List<ulong> tableCards, List<ACTION> lastActions,
+             List<Tuple<ulong, ulong>> playerCards, List<ulong> tableCards, ACTION[] lastActions,
              bool[] isPlayerIn)
         {
             this.stacks = stacks;
@@ -206,7 +206,7 @@ namespace Poker_MCCFRM
             {
                 isPlayerIn[i] = true;
                 stacks[i] = Global.buyIn;
-                lastActions.Add(ACTION.NONE);
+                lastActions[i] = ACTION.NONE;
             }
             bets[0] = Global.SB;
             bets[1] = Global.BB;
@@ -218,7 +218,7 @@ namespace Poker_MCCFRM
             playersInHand = Global.nofPlayers;
         }
         public ChanceState(int bettingRound, int playersInHand, int[] stacks, int[] bets, List<ACTION> history,
-             List<Tuple<ulong, ulong>> playerCards, List<ulong> tableCards, List<ACTION> lastActions,
+             List<Tuple<ulong, ulong>> playerCards, List<ulong> tableCards, ACTION[] lastActions,
              bool[] isPlayerIn)
         {
             this.stacks = stacks;
@@ -378,7 +378,7 @@ namespace Poker_MCCFRM
     {
         public PlayState(int bettingRound, int playerToMove, int lastToMove, int minRaise,
             int playersInHand, int[] stacks, int[] bets, List<ACTION> history,
-             List<Tuple<ulong, ulong>> playerCards, List<ulong> tableCards, List<ACTION> lastActions,
+             List<Tuple<ulong, ulong>> playerCards, List<ulong> tableCards, ACTION[] lastActions,
              bool[] isPlayerIn, bool isBettingOpen)
         {
             this.lastPlayer = lastToMove;
@@ -414,7 +414,8 @@ namespace Poker_MCCFRM
                     int[] newBets = new int[Global.nofPlayers];
                     Array.Copy(bets, newBets, Global.nofPlayers);
 
-                    List<ACTION> newLastActions = new List<ACTION>(lastActions);
+                    ACTION[] newLastActions = new ACTION[Global.nofPlayers];
+                    Array.Copy(newLastActions, lastActions, Global.nofPlayers);
                     bool[] newIsPlayerIn = new bool[Global.nofPlayers];
                     Array.Copy(isPlayerIn, newIsPlayerIn, Global.nofPlayers);
 
@@ -458,7 +459,8 @@ namespace Poker_MCCFRM
                     int actualRaise = (raise + bets[playerToMove]) - currentCall;
 
                     List<ACTION> newHistory = new List<ACTION>(history);
-                    List<ACTION> newLastActions = new List<ACTION>(lastActions);
+                    ACTION[] newLastActions = new ACTION[Global.nofPlayers];
+                    Array.Copy(newLastActions, lastActions, Global.nofPlayers);
 
                     int[] newStacks = new int[Global.nofPlayers];
                     Array.Copy(stacks, newStacks, Global.nofPlayers);
@@ -543,7 +545,8 @@ namespace Poker_MCCFRM
             {
                 // fold
                 List<ACTION> newHistory = new List<ACTION>(history);
-                List<ACTION> newLastActions = new List<ACTION>(lastActions);
+                ACTION[] newLastActions = new ACTION[Global.nofPlayers];
+                Array.Copy(newLastActions, lastActions, Global.nofPlayers);
                 int[] newStacks = new int[Global.nofPlayers];
                 Array.Copy(stacks, newStacks, Global.nofPlayers);
                 int[] newBets = new int[Global.nofPlayers];
@@ -589,7 +592,8 @@ namespace Poker_MCCFRM
             {
                 // call possible if needed chips is LESS (otherwise its all in), if same its a check
                 List<ACTION> newHistory = new List<ACTION>(history);
-                List<ACTION> newLastActions = new List<ACTION>(lastActions);
+                ACTION[] newLastActions = new ACTION[Global.nofPlayers];
+                Array.Copy(newLastActions, lastActions, Global.nofPlayers);
                 int[] newStacks = new int[Global.nofPlayers];
                 Array.Copy(stacks, newStacks, Global.nofPlayers);
                 int[] newBets = new int[Global.nofPlayers];
