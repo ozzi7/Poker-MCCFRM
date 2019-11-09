@@ -687,7 +687,7 @@ namespace Poker_MCCFRM
                 if (raise > 0)
                 {
                     //(currently, multiple all-ins in a row dont accumulate the raises and reopen betting round but probably they should)
-                    int actualRaise = (raise + bets[playerToMove]) - currentCall;
+                    //int actualRaise = (raise + bets[playerToMove]) - currentCall;
                     validActions.Add(ACTION.ALLIN);
                 }
             }

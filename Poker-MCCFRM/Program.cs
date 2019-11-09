@@ -85,59 +85,62 @@ namespace Poker_MCCFRM
 
             long sharedLoopCounter = 0;
 
-                Parallel.For(0, Global.NOF_THREADS,
-                  index =>
-                  {
-                      Trainer trainer = new Trainer(index);
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            Parallel.For(0, Global.NOF_THREADS,
+                index =>
+                {
+                    Trainer trainer = new Trainer(index);
 
-                      for (int t = 1; ; t++) // bb rounds
-                      {
-                          if (t % 1000 == 0)
-                          {
-                              Interlocked.Add(ref sharedLoopCounter, 1000);
-                          }
-                          if (t % 10000 == 1 && index == 0) // implement progress bar later
-                          {
-                              Console.WriteLine("Training steps " + sharedLoopCounter);
-                              trainer.PrintStartingHandsChart();
-                              trainer.PrintStatistics(sharedLoopCounter);
-                              Console.WriteLine();
-                          }
-                          for (int traverser = 0; traverser < Global.nofPlayers; traverser++) // traverser 
-                          {
-                              if (t % StrategyInterval == 0 && index == 0)
-                              {
-                                  trainer.UpdateStrategy(traverser);
-                              }
-                              if (t > PruneThreshold)
-                              {
-                                  float q = RandomGen.NextFloat();
-                                  if (q < 0.05)
-                                  {
-                                      trainer.TraverseMCCFR(traverser, t);
-                                  }
-                                  else
-                                  {
-                                      trainer.TraverseMCCFRPruned(traverser);
-                                  }
-                              }
-                              else
-                              {
-                                  trainer.TraverseMCCFR(traverser, t);
-                              }
-                              if (t % SaveToDiskInterval == 0 && index == 0) // allow only one thread to do saving
-                              {
-                                  trainer.SaveToDisk();
-                              }
-                          }
-                          // discount all infosets (for all players)
-                          if (t < LCFRThreshold && t % DiscountInterval == 0 && index == 0) // allow only one thread to do discounting
-                          {
-                              float d = ((float)t / DiscountInterval) / ((float)t / DiscountInterval + 1);
-                              trainer.DiscountInfosets(d);
-                          }
-                      }
-                  });
+                    for (int t = 1; ; t++) // bb rounds
+                    {
+                        if (t % 1000 == 0)
+                        {
+                            Interlocked.Add(ref sharedLoopCounter, 1000);
+                        }
+                        if (t % 10000 == 1 && index == 0) // implement progress bar later
+                        {
+                            Console.WriteLine("Training steps " + sharedLoopCounter);
+                            trainer.PrintStartingHandsChart();
+                            trainer.PrintStatistics(sharedLoopCounter);
+                            Console.WriteLine("Iterations per second: {0}" + 1000 * sharedLoopCounter / stopwatch.ElapsedMilliseconds);
+                            Console.WriteLine();
+                        }
+                        for (int traverser = 0; traverser < Global.nofPlayers; traverser++) // traverser 
+                        {
+                            if (t % StrategyInterval == 0 && index == 0)
+                            {
+                                trainer.UpdateStrategy(traverser);
+                            }
+                            if (t > PruneThreshold)
+                            {
+                                float q = RandomGen.NextFloat();
+                                if (q < 0.05)
+                                {
+                                    trainer.TraverseMCCFR(traverser, t);
+                                }
+                                else
+                                {
+                                    trainer.TraverseMCCFRPruned(traverser);
+                                }
+                            }
+                            else
+                            {
+                                trainer.TraverseMCCFR(traverser, t);
+                            }
+                            if (t % SaveToDiskInterval == 0 && index == 0) // allow only one thread to do saving
+                            {
+                                trainer.SaveToDisk();
+                            }
+                        }
+                        // discount all infosets (for all players)
+                        if (t < LCFRThreshold && t % DiscountInterval == 0 && index == 0) // allow only one thread to do discounting
+                        {
+                            float d = ((float)t / DiscountInterval) / ((float)t / DiscountInterval + 1);
+                            trainer.DiscountInfosets(d);
+                        }
+                    }
+                });
             
         }
     }
