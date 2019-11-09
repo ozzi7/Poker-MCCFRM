@@ -28,10 +28,10 @@ namespace Poker_MCCFRM
     {
         public List<Tuple<ulong, ulong>> playerCards = new List<Tuple<ulong, ulong>>();
         public List<ulong> tableCards = new List<ulong>();
-        public List<int> stacks = new List<int>();
-        public List<int> bets = new List<int>();
-        public List<float> rewards = new List<float>();
-        public List<bool> isPlayerIn = new List<bool>();
+        public int[] stacks = new int[Global.nofPlayers];
+        public int[] bets = new int[Global.nofPlayers];
+        public float[] rewards = new float[Global.nofPlayers];
+        public bool[] isPlayerIn = new bool[Global.nofPlayers];
 
         public List<State> children = new List<State>();
 
@@ -84,7 +84,7 @@ namespace Poker_MCCFRM
             }
             return count;
         }
-        public int GetActivePlayers(List<bool> newIsPlayerIn)
+        public int GetActivePlayers(bool[] newIsPlayerIn)
         {
             return newIsPlayerIn.Where(c => c).Count();
         }
@@ -121,9 +121,10 @@ namespace Poker_MCCFRM
     }
     class TerminalState : State
     {
-        public TerminalState(List<int> stacks, List<int> bets, List<ACTION> history,
+        private bool rewardGenerated = false;
+        public TerminalState(int[] stacks, int[] bets, List<ACTION> history,
              List<Tuple<ulong, ulong>> playerCards, List<ulong> tableCards, List<ACTION> lastActions,
-             List<bool> isPlayerIn)
+             bool[] isPlayerIn)
         {
             this.stacks = stacks;
             this.playerCards = playerCards;
@@ -133,10 +134,11 @@ namespace Poker_MCCFRM
             this.bets = bets;
             this.stacks = stacks;
             this.history = history;
+            rewardGenerated = false;
         }
         public override float GetReward(int player)
         {
-            if (rewards.Count == 0)
+            if (!rewardGenerated)
                 CreateRewards();
             if (rewards.Sum() != 0)
                 throw new Exception("Wrong reward calculation");
@@ -144,8 +146,6 @@ namespace Poker_MCCFRM
         }
         public void CreateRewards()
         {
-            rewards = new List<float>(new float[Global.nofPlayers]);
-
             for (int i = 0; i < Global.nofPlayers; ++i)
             {
                 rewards[i] -= bets[i]; // the bet amounts are considered lost
@@ -194,6 +194,7 @@ namespace Poker_MCCFRM
                     rewards[indicesWithBestHands[i]] += bets.Sum() / indicesWithBestHands.Count();
                 }
             }
+            rewardGenerated = true;
         }
     }
     class ChanceState : State
@@ -201,12 +202,10 @@ namespace Poker_MCCFRM
         // this is the root state
         public ChanceState()
         {
-            bets = new List<int>(new int[Global.nofPlayers]);
-            rewards = new List<float>(new float[Global.nofPlayers]);
             for (int i = 0; i < Global.nofPlayers; ++i)
             {
-                isPlayerIn.Add(true);
-                stacks.Add(Global.buyIn);
+                isPlayerIn[i] = true;
+                stacks[i] = Global.buyIn;
                 lastActions.Add(ACTION.NONE);
             }
             bets[0] = Global.SB;
@@ -218,9 +217,9 @@ namespace Poker_MCCFRM
             minRaise = Global.BB;
             playersInHand = Global.nofPlayers;
         }
-        public ChanceState(int bettingRound, int playersInHand, List<int> stacks, List<int> bets, List<ACTION> history,
+        public ChanceState(int bettingRound, int playersInHand, int[] stacks, int[] bets, List<ACTION> history,
              List<Tuple<ulong, ulong>> playerCards, List<ulong> tableCards, List<ACTION> lastActions,
-             List<bool> isPlayerIn)
+             bool[] isPlayerIn)
         {
             this.stacks = stacks;
             this.playerCards = playerCards;
@@ -378,9 +377,9 @@ namespace Poker_MCCFRM
     class PlayState : State
     {
         public PlayState(int bettingRound, int playerToMove, int lastToMove, int minRaise,
-            int playersInHand, List<int> stacks, List<int> bets, List<ACTION> history,
+            int playersInHand, int[] stacks, int[] bets, List<ACTION> history,
              List<Tuple<ulong, ulong>> playerCards, List<ulong> tableCards, List<ACTION> lastActions,
-             List<bool> isPlayerIn, bool isBettingOpen)
+             bool[] isPlayerIn, bool isBettingOpen)
         {
             this.lastPlayer = lastToMove;
             this.minRaise = minRaise;
@@ -410,10 +409,14 @@ namespace Poker_MCCFRM
                 for (int i = 0; i < Global.raises.Count; ++i)
                 {
                     List<ACTION> newHistory = new List<ACTION>(history);
-                    List<int> newStacks = new List<int>(stacks);
-                    List<int> newBets = new List<int>(bets);
+                    int[] newStacks = new int[Global.nofPlayers];
+                    Array.Copy(stacks, newStacks,Global.nofPlayers);
+                    int[] newBets = new int[Global.nofPlayers];
+                    Array.Copy(bets, newBets, Global.nofPlayers);
+
                     List<ACTION> newLastActions = new List<ACTION>(lastActions);
-                    List<bool> newIsPlayerIn = new List<bool>(isPlayerIn);
+                    bool[] newIsPlayerIn = new bool[Global.nofPlayers];
+                    Array.Copy(isPlayerIn, newIsPlayerIn, Global.nofPlayers);
 
                     // we add <raise> chips to our current bet
                     int raise = (int)(Global.raises[i] * pot);
@@ -456,9 +459,15 @@ namespace Poker_MCCFRM
 
                     List<ACTION> newHistory = new List<ACTION>(history);
                     List<ACTION> newLastActions = new List<ACTION>(lastActions);
-                    List<int> newStacks = new List<int>(stacks);
-                    List<int> newBets = new List<int>(bets);
-                    List<bool> newIsPlayerIn = new List<bool>(isPlayerIn);
+
+                    int[] newStacks = new int[Global.nofPlayers];
+                    Array.Copy(stacks, newStacks, Global.nofPlayers);
+                    int[] newBets = new int[Global.nofPlayers];
+                    Array.Copy(bets, newBets, Global.nofPlayers);
+
+                    bool[] newIsPlayerIn = new bool[Global.nofPlayers];
+                    Array.Copy(isPlayerIn, newIsPlayerIn, Global.nofPlayers);
+
 
                     if (actualRaise >= minRaise)
                     {
@@ -534,10 +543,13 @@ namespace Poker_MCCFRM
             {
                 // fold
                 List<ACTION> newHistory = new List<ACTION>(history);
-                List<int> newStacks = new List<int>(stacks);
-                List<int> newBets = new List<int>(bets);
                 List<ACTION> newLastActions = new List<ACTION>(lastActions);
-                List<bool> newIsPlayerIn = new List<bool>(isPlayerIn);
+                int[] newStacks = new int[Global.nofPlayers];
+                Array.Copy(stacks, newStacks, Global.nofPlayers);
+                int[] newBets = new int[Global.nofPlayers];
+                Array.Copy(bets, newBets, Global.nofPlayers);
+                bool[] newIsPlayerIn = new bool[Global.nofPlayers];
+                Array.Copy(isPlayerIn, newIsPlayerIn, Global.nofPlayers);
 
                 newHistory.Add(ACTION.FOLD);
                 newLastActions[playerToMove] = ACTION.FOLD;
@@ -577,10 +589,13 @@ namespace Poker_MCCFRM
             {
                 // call possible if needed chips is LESS (otherwise its all in), if same its a check
                 List<ACTION> newHistory = new List<ACTION>(history);
-                List<int> newStacks = new List<int>(stacks);
-                List<int> newBets = new List<int>(bets);
                 List<ACTION> newLastActions = new List<ACTION>(lastActions);
-                List<bool> newIsPlayerIn = new List<bool>(isPlayerIn);
+                int[] newStacks = new int[Global.nofPlayers];
+                Array.Copy(stacks, newStacks, Global.nofPlayers);
+                int[] newBets = new int[Global.nofPlayers];
+                Array.Copy(bets, newBets, Global.nofPlayers);
+                bool[] newIsPlayerIn = new bool[Global.nofPlayers];
+                Array.Copy(isPlayerIn, newIsPlayerIn, Global.nofPlayers);
 
                 newHistory.Add(ACTION.CALL);
                 newLastActions[playerToMove] = ACTION.CALL;
