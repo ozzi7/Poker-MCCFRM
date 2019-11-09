@@ -129,12 +129,12 @@ namespace Poker_MCCFRM
                         recordDistance = totalDistance;
                         Array.Copy(bestCenters, recordCenters, recordCenters.Length);
                     }
-                    Console.WriteLine("Current average distance: {0} Improvement: {1}", totalDistance, diff);
+                    Console.WriteLine("Current average distance: {0:0.00} Improvement: {1:0.00}", totalDistance, diff);
                 }
             }
             Console.WriteLine("Best distance found: " + recordDistance);
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("K-means clustering (EMD) completed in {0}", elapsed);
+            Console.WriteLine("K-means clustering (EMD) completed in {0}d {1}h {2}m {3}s", elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
 
             // print starting hand chart
             return recordCenters;
@@ -254,12 +254,12 @@ namespace Poker_MCCFRM
                         recordDistance = totalDistance;
                         Array.Copy(bestCenters, recordCenters, recordCenters.Length);
                     }
-                    Console.WriteLine("Current average distance: {0} Improvement: {1}", totalDistance, diff);
+                    Console.WriteLine("Current average distance: {0:0.00} Improvement: {1:0.00}", totalDistance, diff);
                 }
             }
             Console.WriteLine("Best distance found: " + recordDistance);
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("K-means clustering (L2) completed in {0}", elapsed);
+            Console.WriteLine("K-means clustering (L2) completed in {0}d {1}h {2}m {3}s", elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
 
             // print starting hand chart
             return recordCenters;

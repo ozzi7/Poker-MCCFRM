@@ -130,7 +130,8 @@ namespace Poker_MCCFRM
                  });
             }
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("Calculating opponent clusters completed in {0}", elapsed);
+            Console.WriteLine("Calculating opponent clusters completed in {0}d {1}h {2}m {3}s", elapsed.Days,
+                elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
 
             Console.WriteLine("Calculated histograms: ");
             int[] cardsOutput = new int[2];
@@ -204,7 +205,8 @@ namespace Poker_MCCFRM
                 }
             }
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("River clustering completed in {0}", elapsed);
+            Console.WriteLine("River clustering completed in {0}d {1}h {2}m {3}s", elapsed.Days,
+                elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
         }
         private static void GenerateRiverHistograms()
         {
@@ -275,7 +277,8 @@ namespace Poker_MCCFRM
                  });
             }
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("Generating River histograms completed in {0}", elapsed);
+            Console.WriteLine("Generating River histograms completed in {0}d {1}h {2}m {3}s", elapsed.Days,
+                elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
         }
         public static void SaveToFile()
         {

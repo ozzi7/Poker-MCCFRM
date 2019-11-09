@@ -23,10 +23,10 @@ namespace Poker_MCCFRM
                 actionCounter = new float[actions];
             }
         }
-        public List<float> CalculateStrategy()
+        public float[] CalculateStrategy()
         {
             float sum = 0;
-            List<float> moveProbs = new List<float>(new float[regret.Length]);
+            float[] moveProbs = new float[regret.Length];
             for (int a = 0; a < regret.Length; ++a)
             {
                 sum += Math.Max(0, regret[a]);
@@ -44,10 +44,10 @@ namespace Poker_MCCFRM
             }
             return moveProbs;
         }
-        public List<float> GetFinalStrategy()
+        public float[] GetFinalStrategy()
         {
             float sum = 0;
-            List<float> moveProbs = new List<float>(new float[regret.Length]);
+            float[] moveProbs = new float[regret.Length];
             for (int a = 0; a < regret.Length; ++a)
             {
                 sum += actionCounter[a];

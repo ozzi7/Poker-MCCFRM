@@ -8,7 +8,7 @@ namespace Poker_MCCFRM
     {
         /// <summary>
         /// Returns the indices in the data for the thread to work on (inclusive, exclusive)
-        /// The first thread will get additional work (they are started first)
+        /// The first threads will get additional work (they are started first)
         /// </summary>
         /// <param name="dataCount"></param>
         /// <param name="threadCount"></param>

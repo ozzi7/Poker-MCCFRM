@@ -83,7 +83,7 @@ namespace Poker_MCCFRM
                 });
             }
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("Generating Turn histograms completed in {0}", elapsed);
+            Console.WriteLine("Generating Turn histograms completed in {0}d {1}h {2}m {3}s", elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
         }
         private static void GenerateFlopHistograms()
         {
@@ -129,7 +129,7 @@ namespace Poker_MCCFRM
                 });
             }
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("Generating Turn histograms completed in {0}", elapsed);
+            Console.WriteLine("Generating Turn histograms completed in {0}d {1}h {2}m {3}s", elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
         }
         private static void ClusterTurn()
         {
@@ -139,7 +139,7 @@ namespace Poker_MCCFRM
             turnIndices = kmeans.ClusterEMD(histogramsTurn, Global.nofTurnBuckets, 1);
 
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("Turn clustering completed in {0}", elapsed);
+            Console.WriteLine("Turn clustering completed in {0}d {1}h {2}m {3}s", elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
 
             Console.WriteLine("Created the following clusters for the Turn (extract of one cluster): ");
             int nofEntriesToDisplay = 20;
@@ -167,7 +167,7 @@ namespace Poker_MCCFRM
             flopIndices = kmeans.ClusterEMD(histogramsFlop, Global.nofFlopBuckets, 1);
 
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("Flop clustering completed in {0}", elapsed);
+            Console.WriteLine("Flop clustering completed in {0}d {1}h {2}m {3}s", elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
 
             Console.WriteLine("Created the following clusters for the Flop (extract of one cluster): ");
             int nofEntriesToDisplay = 20;
