@@ -61,7 +61,7 @@ namespace Poker_MCCFRM
 
             using (var progress = new ProgressBar())
             {
-                progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / 169);
+                progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / 169, sharedLoopCounter);
 
                 Parallel.For(0, 169,
                  i =>
@@ -126,7 +126,7 @@ namespace Poker_MCCFRM
                          deadCardMask = (1L << cards[0]) + (1L << cards[1]);
                      }
                      Interlocked.Add(ref sharedLoopCounter, 1);
-                     progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / (169));
+                     progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / (169), sharedLoopCounter);
                  });
             }
             TimeSpan elapsed = DateTime.UtcNow - start;
@@ -216,7 +216,7 @@ namespace Poker_MCCFRM
             long sharedLoopCounter = 0;
             using (var progress = new ProgressBar())
             {
-                progress.Report((double)(sharedLoopCounter) / Global.indexer_2_5.roundSize[1]);
+                progress.Report((double)(sharedLoopCounter) / Global.indexer_2_5.roundSize[1], sharedLoopCounter);
 
                 Parallel.For(0, Global.NOF_THREADS,
                  t =>
@@ -267,11 +267,11 @@ namespace Poker_MCCFRM
                          if(iter % 10000 == 0)
                          {
                              Interlocked.Add(ref sharedLoopCounter, 10000);
-                             progress.Report((double)(sharedLoopCounter) / Global.indexer_2_5.roundSize[1]);
+                             progress.Report((double)(sharedLoopCounter) / Global.indexer_2_5.roundSize[1], sharedLoopCounter);
                          }
                      }
                      Interlocked.Add(ref sharedLoopCounter, iter % 10000);
-                     progress.Report((double)(sharedLoopCounter) / Global.indexer_2_5.roundSize[1]);
+                     progress.Report((double)(sharedLoopCounter) / Global.indexer_2_5.roundSize[1], sharedLoopCounter);
                  });
             }
             TimeSpan elapsed = DateTime.UtcNow - start;

@@ -47,7 +47,7 @@ namespace Poker_MCCFRM
             long sharedLoopCounter = 0;
             using (var progress = new ProgressBar())
             {
-                progress.Report((double)(sharedLoopCounter) / Global.indexer_2_4.roundSize[1]);
+                progress.Report((double)(sharedLoopCounter) / Global.indexer_2_4.roundSize[1], sharedLoopCounter);
 
                 Parallel.For(0, Global.NOF_THREADS,
                 t =>
@@ -78,7 +78,7 @@ namespace Poker_MCCFRM
                         }
 
                         sharedLoopCounter++;
-                        progress.Report((double)(sharedLoopCounter) / Global.indexer_2_4.roundSize[1]);
+                        progress.Report((double)(sharedLoopCounter) / Global.indexer_2_4.roundSize[1], sharedLoopCounter);
                     }
                 });
             }
@@ -95,7 +95,7 @@ namespace Poker_MCCFRM
             long sharedLoopCounter = 0;
             using (var progress = new ProgressBar())
             {
-                progress.Report((double)(sharedLoopCounter) / Global.indexer_2_3.roundSize[1]);
+                progress.Report((double)(sharedLoopCounter) / Global.indexer_2_3.roundSize[1], sharedLoopCounter);
 
                 Parallel.For(0, Global.NOF_THREADS,
                 t =>
@@ -124,7 +124,7 @@ namespace Poker_MCCFRM
                         }
 
                         sharedLoopCounter++;
-                        progress.Report((double)(sharedLoopCounter) / Global.indexer_2_3.roundSize[1]);
+                        progress.Report((double)(sharedLoopCounter) / Global.indexer_2_3.roundSize[1], sharedLoopCounter);
                     }
                 });
             }

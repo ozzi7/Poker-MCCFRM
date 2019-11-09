@@ -65,7 +65,7 @@ namespace SnapCall
             }
 
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("Hand evaluator setup completed in {0:0.00}s", elapsed.TotalSeconds);
+            Console.WriteLine("Hand evaluator setup completed in {0}", elapsed.TotalSeconds);
             loaded = true;
         }
 
@@ -107,7 +107,7 @@ namespace SnapCall
                 {
                     handBitmaps.Add(values.Aggregate(0ul, (acc, el) => acc | (1ul << el)));
                     sharedLoopCounter++;
-                    progress.Report((double)sharedLoopCounter/ combinations.Count);
+                    progress.Report((double)sharedLoopCounter/ combinations.Count, sharedLoopCounter);
                 }
             }
 
@@ -124,7 +124,7 @@ namespace SnapCall
                     var hand = new Hand(bitmap);
                     handStrengths.Add(bitmap, hand.GetStrength());
                     sharedLoopCounter++;
-                    progress.Report((double)sharedLoopCounter / handBitmaps.Count);
+                    progress.Report((double)sharedLoopCounter / handBitmaps.Count, sharedLoopCounter);
                 }
             }
 
@@ -140,7 +140,7 @@ namespace SnapCall
                 {
                     Utilities.BinaryInsert(uniqueHandStrengths, strength.Value);
                     sharedLoopCounter++;
-                    progress.Report((double)sharedLoopCounter / handStrengths.Count);
+                    progress.Report((double)sharedLoopCounter / handStrengths.Count, sharedLoopCounter);
                 }
             }
 			Console.WriteLine("{0} unique hand strengths", uniqueHandStrengths.Count);
@@ -162,7 +162,7 @@ namespace SnapCall
                         handRankMap[bitmap] = (ulong)equivalence;
                     }
                     sharedLoopCounter++;
-                    progress.Report((double)sharedLoopCounter / handBitmaps.Count);
+                    progress.Report((double)sharedLoopCounter / handBitmaps.Count, sharedLoopCounter);
                 }
 			}
 		}
@@ -187,7 +187,7 @@ namespace SnapCall
                 handRankMap[bitmap] = subsetValues.Max();
 
                 sharedLoopCounter++;
-                progress.Report((double)sharedLoopCounter / combinations.Count);
+                progress.Report((double)sharedLoopCounter / combinations.Count, sharedLoopCounter);
             }
         }
 
@@ -211,7 +211,7 @@ namespace SnapCall
                 handRankMap[bitmap] = subsetValues.Max();
 
                 sharedLoopCounter++;
-                progress.Report((double)sharedLoopCounter / combinations.Count);
+                progress.Report((double)sharedLoopCounter / combinations.Count, sharedLoopCounter);
             }
         }
 

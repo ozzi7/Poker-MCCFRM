@@ -338,7 +338,7 @@ namespace Poker_MCCFRM
             ResetGame();
             List<PlayState> gs = ((ChanceState)rootState).GetFirstActionStates();
 
-            int maxOutput = 10;
+            int maxOutput = -1; // todo
             foreach (PlayState ps in gs)
             {
                 if (maxOutput < 0)

@@ -85,11 +85,11 @@ namespace Poker_MCCFRM
                                      Interlocked.Add(ref sharedLoopCounter, 10000);
                                      Interlocked.Add(ref totalDistance, (long)(threadDistance * 1000000));
                                      threadDistance = 0;
-                                     progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.GetLength(0));
+                                     progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.GetLength(0), sharedLoopCounter);
                                  }
                              }
                              Interlocked.Add(ref sharedLoopCounter, iter % 10000);
-                             progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.GetLength(0));
+                             progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.GetLength(0), sharedLoopCounter);
 
                              Interlocked.Add(ref totalDistance, (long)(threadDistance * 1000000));
                          });
@@ -211,11 +211,11 @@ namespace Poker_MCCFRM
                                      Interlocked.Add(ref sharedLoopCounter, 10000);
                                      Interlocked.Add(ref totalDistance, (long)(threadDistance * 1000000));
                                      threadDistance = 0;
-                                     progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.GetLength(0));
+                                     progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.GetLength(0), sharedLoopCounter);
                                  }
                              }
                              Interlocked.Add(ref sharedLoopCounter, iter % 10000);
-                             progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.GetLength(0));
+                             progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.GetLength(0), sharedLoopCounter);
 
                              Interlocked.Add(ref totalDistance, (long)(threadDistance * 1000000));
                          });

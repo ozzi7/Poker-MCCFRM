@@ -159,7 +159,7 @@ namespace Poker_MCCFRM
                 float NPot5 = (ahead5 + tied5 == 0) ? 0 : (tableFlop[0, 2] + tableFlop[1, 2] / 2.0f + tableFlop[0, 1] / 2.0f) / (ahead5 + tied5);
                 EHSFlop[i] = handstrength5 * (1 - NPot5) + (1 - handstrength5) * Ppot5;
 
-                progress.Report((double)(i + 1) / 1286792);
+                progress.Report((double)(i + 1) / 1286792, i);
             }
         }
         private void Calculate6Cards(Evaluator evaluator, HandIndexer indexer)
@@ -245,7 +245,7 @@ namespace Poker_MCCFRM
                 float NPot6 = (ahead6 + tied6 == 0) ? 0 : (tableTurn[0, 2] + tableTurn[1, 2] / 2.0f + tableTurn[0, 1] / 2.0f) / (ahead6 + tied6);
                 EHSTurn[i] = handstrength6 * (1 - NPot6) + (1 - handstrength6) * Ppot6;
 
-                progress.Report((double)(i + 1) / 13960050);
+                progress.Report((double)(i + 1) / 13960050,i);
             }
         }
         private void CalculateFlopHistograms(Evaluator evaluator, HandIndexer indexer)
@@ -330,12 +330,12 @@ namespace Poker_MCCFRM
                      }
 
                      Interlocked.Add(ref sharedLoopCounter, 1);
-                     progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / 1286792);
+                     progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / 1286792, sharedLoopCounter);
                  });
             }
 
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("Histogram generation completed in {0:0.00}s", elapsed.TotalSeconds);
+            Console.WriteLine("Histogram generation completed in {0}", elapsed.TotalSeconds);
         }
         public void SaveToFile()
         {
