@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Poker_MCCFRM
 {
+    [Serializable]
     public class Infoset
     {
         public float[] regret;

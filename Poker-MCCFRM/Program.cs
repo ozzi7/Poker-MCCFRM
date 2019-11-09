@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,10 +13,11 @@ using SnapCall;
 
 namespace Poker_MCCFRM
 {
-    class Program
+    static class Program
     {
         static void Main(string[] args)
         {
+            LoadFromFile();
             Global.handEvaluator = new Evaluator();
             CalculateInformationAbstraction();
             Train();
@@ -81,9 +85,11 @@ namespace Poker_MCCFRM
             long PruneThreshold = 50000000/Global.NOF_THREADS; // bb rounds after this time we stop checking all actions, 200 minutes
             long LCFRThreshold = 10000000/Global.NOF_THREADS; // bb rounds when to stop discounting old regrets, no clue what it should be
             long DiscountInterval = 1000000/Global.NOF_THREADS; // bb rounds, discount values periodically but not every round, 10 minutes
-            long SaveToDiskInterval = 10000000/Global.NOF_THREADS; // not used currently during trial runs
+            long SaveToDiskInterval = 5000000/Global.NOF_THREADS; // not used currently during trial runs
 
             long sharedLoopCounter = 0;
+
+            LoadFromFile();
 
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -103,7 +109,7 @@ namespace Poker_MCCFRM
                             Console.WriteLine("Training steps " + sharedLoopCounter);
                             trainer.PrintStartingHandsChart();
                             trainer.PrintStatistics(sharedLoopCounter);
-                            Console.WriteLine("Iterations per second: {0}" + 1000 * sharedLoopCounter / stopwatch.ElapsedMilliseconds);
+                            Console.WriteLine("Iterations per second: {0}",1000 * sharedLoopCounter / stopwatch.ElapsedMilliseconds);
                             Console.WriteLine();
                         }
                         for (int traverser = 0; traverser < Global.nofPlayers; traverser++) // traverser 
@@ -130,7 +136,7 @@ namespace Poker_MCCFRM
                             }
                             if (t % SaveToDiskInterval == 0 && index == 0) // allow only one thread to do saving
                             {
-                                trainer.SaveToDisk();
+                                SaveToFile();
                             }
                         }
                         // discount all infosets (for all players)
@@ -142,6 +148,71 @@ namespace Poker_MCCFRM
                     }
                 });
             
+        }
+        private static void SaveToFile()
+        {
+            Console.WriteLine("Saving dictionary to file {0}", "nodeMap.txt");
+
+            using FileStream fs = File.OpenWrite("nodeMap.txt");
+            using BinaryWriter writer = new BinaryWriter(fs);
+            foreach (var pair in Global.nodeMap)
+            {
+                byte[] bytes = Encoding.ASCII.GetBytes(pair.Key);
+
+                writer.Write(bytes.Length);
+                writer.Write(bytes);
+
+                bytes = SerializeToBytes(pair.Value);
+                writer.Write(bytes.Length);
+                writer.Write(bytes);
+            }
+        }
+        private static void LoadFromFile()
+        {
+            if (!File.Exists("nodeMap.txt"))
+                return;
+            using FileStream fs = File.OpenRead("nodeMap.txt");
+            using BinaryReader reader = new BinaryReader(fs);
+            Global.nodeMap = new ConcurrentDictionary<string, Infoset>();
+
+            try
+            {
+                while (true)
+                {
+                    int keyLength = reader.ReadInt32();
+                    byte[] key = reader.ReadBytes(keyLength);
+                    string keyString = Encoding.ASCII.GetString(key);
+                    int valueLength = reader.ReadInt32();
+                    byte[] value = reader.ReadBytes(valueLength);
+                    Infoset infoset = Deserialize(value);
+                    Global.nodeMap.TryAdd(keyString, infoset);
+                }
+            }
+            catch (EndOfStreamException e)
+            {
+                return;
+            }
+        }
+        private static byte[] SerializeToBytes<T>(T item)
+        {
+            var formatter = new BinaryFormatter();
+            using var stream = new MemoryStream();
+            formatter.Serialize(stream, item);
+            stream.Seek(0, SeekOrigin.Begin);
+            return stream.ToArray();
+        }
+        private static Infoset Deserialize(this byte[] byteArray)
+        {
+            if (byteArray == null)
+            {
+                return null;
+            }
+            using var memStream = new MemoryStream();
+            var binForm = new BinaryFormatter();
+            memStream.Write(byteArray, 0, byteArray.Length);
+            memStream.Seek(0, SeekOrigin.Begin);
+            Infoset obj = (Infoset)binForm.Deserialize(memStream);
+            return obj;
         }
     }
 }
