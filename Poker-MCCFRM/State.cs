@@ -415,7 +415,7 @@ namespace Poker_MCCFRM
                     Array.Copy(bets, newBets, Global.nofPlayers);
 
                     ACTION[] newLastActions = new ACTION[Global.nofPlayers];
-                    Array.Copy(newLastActions, lastActions, Global.nofPlayers);
+                    Array.Copy(lastActions, newLastActions, Global.nofPlayers);
                     bool[] newIsPlayerIn = new bool[Global.nofPlayers];
                     Array.Copy(isPlayerIn, newIsPlayerIn, Global.nofPlayers);
 
@@ -460,7 +460,7 @@ namespace Poker_MCCFRM
 
                     List<ACTION> newHistory = new List<ACTION>(history);
                     ACTION[] newLastActions = new ACTION[Global.nofPlayers];
-                    Array.Copy(newLastActions, lastActions, Global.nofPlayers);
+                    Array.Copy(lastActions, newLastActions, Global.nofPlayers);
 
                     int[] newStacks = new int[Global.nofPlayers];
                     Array.Copy(stacks, newStacks, Global.nofPlayers);
@@ -546,7 +546,7 @@ namespace Poker_MCCFRM
                 // fold
                 List<ACTION> newHistory = new List<ACTION>(history);
                 ACTION[] newLastActions = new ACTION[Global.nofPlayers];
-                Array.Copy(newLastActions, lastActions, Global.nofPlayers);
+                Array.Copy(lastActions, newLastActions, Global.nofPlayers);
                 int[] newStacks = new int[Global.nofPlayers];
                 Array.Copy(stacks, newStacks, Global.nofPlayers);
                 int[] newBets = new int[Global.nofPlayers];
@@ -593,7 +593,7 @@ namespace Poker_MCCFRM
                 // call possible if needed chips is LESS (otherwise its all in), if same its a check
                 List<ACTION> newHistory = new List<ACTION>(history);
                 ACTION[] newLastActions = new ACTION[Global.nofPlayers];
-                Array.Copy(newLastActions, lastActions, Global.nofPlayers);
+                Array.Copy(lastActions, newLastActions, Global.nofPlayers);
                 int[] newStacks = new int[Global.nofPlayers];
                 Array.Copy(stacks, newStacks, Global.nofPlayers);
                 int[] newBets = new int[Global.nofPlayers];

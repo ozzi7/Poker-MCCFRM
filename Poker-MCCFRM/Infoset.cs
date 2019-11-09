@@ -22,6 +22,11 @@ namespace Poker_MCCFRM
                 regret = new float[actions];
                 actionCounter = new float[actions];
             }
+            else
+            {
+                bool wtf = true;
+                bool wtf2 = wtf;
+            }
         }
         public float[] CalculateStrategy()
         {
