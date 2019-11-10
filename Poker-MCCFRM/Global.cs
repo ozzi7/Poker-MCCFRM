@@ -28,15 +28,16 @@ namespace Poker_MCCFRM
 
         // information abstraction parameters, currently this would be a
         // 169 - 200 - 200 - 200 abstraction, where the river is bucketed using OCHS and the turn and flop using EMD
-        public const int nofRiverBuckets = 200;
-        public const int nofTurnBuckets = 200;
-        public const int nofFlopBuckets = 200;
+        public const int nofRiverBuckets = 500;
+        public const int nofTurnBuckets = 500;
+        public const int nofFlopBuckets = 500;
         // 100k or even 1 million shouldn't take too much time compared to the rest of the information abstraction
-        public const int nofMCSimsPerPreflopHand = 100000;
-        // for the river, determines the river histogram size (in theory could be up to 169 but will be very slow)
-        public const int nofOpponentClusters = 8;
-        // this is used to create the nofOpponentClusters, it can be increased with little time penalty because the clustering for 169 hands is very fast
-        public const int preflopHistogramSize = 50;
+        public const int nofMCSimsPerPreflopHand = 500000;
+        // for the river, determines the river histogram size (in theory could be up to 169 but will be very slow) default 8
+        public const int nofOpponentClusters = 16;
+        // this is used to create the nofOpponentClusters, it can be increased (default 50)
+        // with little time penalty because the clustering for 169 hands is very fast
+        public const int preflopHistogramSize = 100;
         
         // dont change
         public static HandIndexer indexer_2;

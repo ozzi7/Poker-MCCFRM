@@ -61,7 +61,7 @@ namespace Poker_MCCFRM
 
             using (var progress = new ProgressBar())
             {
-                progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / 169, sharedLoopCounter);
+                progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / (169 * Global.nofMCSimsPerPreflopHand), sharedLoopCounter);
 
                 Parallel.For(0, 169,
                  i =>
@@ -124,9 +124,10 @@ namespace Poker_MCCFRM
                          float equity = (strength[0] + strength[1] / 2.0f) / (strength[0] + strength[1] + strength[2]);
                          histogramsPreflop[i, (Math.Min(Global.preflopHistogramSize-1, (int)(equity * (float)Global.preflopHistogramSize)))] += 1;
                          deadCardMask = (1L << cards[0]) + (1L << cards[1]);
+
+                         Interlocked.Add(ref sharedLoopCounter, 1);
+                         progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / (169*Global.nofMCSimsPerPreflopHand), sharedLoopCounter);
                      }
-                     Interlocked.Add(ref sharedLoopCounter, 1);
-                     progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / (169), sharedLoopCounter);
                  });
             }
             TimeSpan elapsed = DateTime.UtcNow - start;
@@ -148,6 +149,7 @@ namespace Poker_MCCFRM
                 {
                     Console.Write(histogramsPreflop[i,j] + " ");
                 }
+                Console.WriteLine();
             }
         }
         private static void ClusterPreflopHands()
@@ -158,16 +160,23 @@ namespace Poker_MCCFRM
 
             Console.WriteLine("Created the following cluster for starting hands: ");
             List<Hand> startingHands = Utilities.GetStartingHandChart();
-            ConsoleColor[] consoleColors = { ConsoleColor.Gray, ConsoleColor.Blue, ConsoleColor.Magenta,
-                ConsoleColor.Yellow, ConsoleColor.Green, ConsoleColor.Red, ConsoleColor.Cyan, ConsoleColor.White };
 
             for (int i = 0; i < 169; ++i)
             {
                 long index = Global.indexer_2.indexLast(new int[] { startingHands[i].Cards[0].GetIndex(),
                     startingHands[i].Cards[1].GetIndex()});
+                
+                var nofConsoleColors = Enum.GetNames(typeof(ConsoleColor)).Length;
 
-                Console.ForegroundColor = consoleColors[preflopIndices[index]];
-                Console.Write("X  ");
+                if (nofConsoleColors <= Global.nofOpponentClusters)
+                {
+                    Console.ForegroundColor = (ConsoleColor)preflopIndices[index];
+                    Console.Write("X  ");
+                }
+                else
+                {
+                    Console.Write(preflopIndices[index] + "  ");
+                }
                 if (i % 13 == 12)
                     Console.WriteLine();
             }
@@ -179,7 +188,7 @@ namespace Poker_MCCFRM
             // k-means clustering
             DateTime start = DateTime.UtcNow;
             Kmeans kmeans = new Kmeans();
-            riverIndices = kmeans.ClusterL2(histogramsRiver, Global.nofRiverBuckets, 4);
+            riverIndices = kmeans.ClusterL2(histogramsRiver, Global.nofRiverBuckets, 1);
 
             Console.WriteLine("Created the following clusters for the River: ");
 
