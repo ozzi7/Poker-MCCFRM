@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -129,7 +130,7 @@ namespace Poker_MCCFRM
                         recordDistance = totalDistance;
                         Array.Copy(bestCenters, recordCenters, recordCenters.Length);
                     }
-                    Console.WriteLine("Current average distance: {0:0.00} Improvement: {1:0.00}", totalDistance, diff);
+                    Console.WriteLine("Current average distance: {0} Improvement: {1}", totalDistance, diff);
                 }
             }
             Console.WriteLine("Best distance found: " + recordDistance);
@@ -194,7 +195,7 @@ namespace Poker_MCCFRM
                                  int bestIndex = 0;
                                  for (int m = 0; m < k; ++m) // go through centers
                                  {
-                                     double tempDistance = GetL2Distance(data, centers, j, m);
+                                     double tempDistance = GetL2DistanceSquared(data, centers, j, m);
                                      if (tempDistance < distance)
                                      {
                                          distance = tempDistance;
@@ -254,7 +255,7 @@ namespace Poker_MCCFRM
                         recordDistance = totalDistance;
                         Array.Copy(bestCenters, recordCenters, recordCenters.Length);
                     }
-                    Console.WriteLine("Current average distance: {0:0.00} Improvement: {1:0.00}", totalDistance, diff);
+                    Console.WriteLine("Current average distance (without sqrt): {0} Improvement: {1}", totalDistance, diff);
                 }
             }
             Console.WriteLine("Best distance found: " + recordDistance);
@@ -282,14 +283,29 @@ namespace Poker_MCCFRM
             }
             return totalDistance;
         }
-        private double GetL2Distance(float[,] data, float[,] centers, int index1, int index2)
+        private double GetL2DistanceSquared(float[,] data, float[,] centers, int index1, int index2)
         {
+            // we could check if hardware instruction is available (better do it before the loop)
+            //double totalDistance = 0;
+            //for (int i = 0; i < data.GetLength(1); i++)
+            //{
+            //    totalDistance += (data[index1, i] - centers[index2, i]) * (double)(data[index1, i] - centers[index2, i]);
+            //}
+            //return totalDistance;            
+
             double totalDistance = 0;
-            for (int i = 0; i < data.GetLength(1); i++)
+            Vector4 v1, v2;
+            for (int i = 0; i < data.GetLength(1) - 4; i +=4)
             {
-                totalDistance += (double)(data[index1, i] - centers[index2, i])* (double)(data[index1, i] - centers[index2, i]);
+                v1 = new Vector4(data[index1, i], data[index1, i+1], data[index1, i+2], data[index1, i+3]);
+                v2 = new Vector4(centers[index2, i], centers[index2, i+1], centers[index2, i+2], centers[index2, i+3]);
+                totalDistance += (v1-v2).LengthSquared();
             }
-            return Math.Sqrt(totalDistance); // we don't gain much by omitting the squareroot because EMD is used for the larger buckets
+            for (int i = data.GetLength(1) - data.GetLength(1)%4; i < data.GetLength(1); i++) // if the histogram is not a multiple of 4
+            {
+                totalDistance += (data[index1, i] - centers[index2, i]) * (double)(data[index1, i] - centers[index2, i]);
+            }
+            return totalDistance;
         }
         public static double AddDouble(ref double location1, double value)
         {
