@@ -47,7 +47,7 @@ namespace Poker_MCCFRM
             {
                 Infoset infoset = gs.GetInfoset();
                 float[] sigma = infoset.CalculateStrategy();
-                int randomIndex = SampleDistribution(sigma);
+                int randomIndex = Util.SampleDistribution(sigma);
                 gs.CreateChildren(); 
                 gs = gs.children[randomIndex];
                 infoset.actionCounter[randomIndex]++;
@@ -161,7 +161,7 @@ namespace Poker_MCCFRM
                 Infoset infoset = gs.GetInfoset();
                 float[] sigma = infoset.CalculateStrategy();
 
-                int randomIndex = SampleDistribution(sigma);
+                int randomIndex = Util.SampleDistribution(sigma);
                 gs.CreateChildren();
 
                 return TraverseMCCFRPruned(gs.children[randomIndex], traverser);
@@ -216,25 +216,11 @@ namespace Poker_MCCFRM
                 Infoset infoset = gs.GetInfoset();
                 float[] sigma = infoset.CalculateStrategy();
 
-                int randomIndex = SampleDistribution(sigma);
+                int randomIndex = Util.SampleDistribution(sigma);
                 gs.CreateChildren();
 
                 return TraverseMCCFR(gs.children[randomIndex], traverser, iteration);
             }
-        }
-        private int SampleDistribution(float[] probabilities)
-        {
-            double rand = RandomGen.NextDouble();
-            double sum = 0.0;
-            for (int i = 0; i < probabilities.Length; ++i)
-            {
-                sum += probabilities[i];
-                if (sum >= rand)
-                {
-                    return i;
-                }
-            }
-            return probabilities.Length - 1;
         }
         internal void TraverseMCCFRPruned()
         {

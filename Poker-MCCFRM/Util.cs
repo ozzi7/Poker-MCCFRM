@@ -25,5 +25,33 @@ namespace Poker_MCCFRM
             }
             return Tuple.Create((minItems * threadIndex) + extraItems, (minItems * threadIndex) + extraItems + minItems);
         }
+        public static int SampleDistribution(float[] probabilities)
+        {
+            double rand = RandomGen.NextDouble();
+            double sum = 0.0;
+            for (int i = 0; i < probabilities.Length; ++i)
+            {
+                sum += probabilities[i];
+                if (sum >= rand)
+                {
+                    return i;
+                }
+            }
+            return probabilities.Length - 1;
+        }
+        public static int SampleDistribution(double[] probabilities)
+        {
+            double rand = RandomGen.NextDouble();
+            double sum = 0.0;
+            for (int i = 0; i < probabilities.Length; ++i)
+            {
+                sum += probabilities[i];
+                if (sum >= rand)
+                {
+                    return i;
+                }
+            }
+            return probabilities.Length - 1;
+        }
     }
 }
