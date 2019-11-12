@@ -12,7 +12,7 @@ namespace Poker_MCCFRM
         public static int[] turnIndices; // mapping each canonical turn hand (2+4 cards) to a cluster
 
         static float[,] histogramsFlop; 
-        static float[,] histogramsTurn;
+        static float[][] histogramsTurn;
 
         static readonly string filenameEMDTurnTable = "EMDTurnTable.txt";
         static readonly string filenameEMDFlopTable = "EMDFlopTable.txt";
@@ -42,8 +42,11 @@ namespace Poker_MCCFRM
             Console.WriteLine("Generating histograms for {0} turn hands of length {1} each...",
                 Global.indexer_2_4.roundSize[1], Global.nofRiverBuckets);
             DateTime start = DateTime.UtcNow;
-            histogramsTurn = new float[Global.indexer_2_4.roundSize[1], Global.nofRiverBuckets];
-
+            histogramsTurn = new float[Global.indexer_2_4.roundSize[1]][]; // c# doesnt allow more than int max indices (its 2019, bitch pls)
+            for(int i = 0; i < Global.indexer_2_4.roundSize[1]; ++i)
+            {
+                histogramsTurn[i] = new float[Global.nofRiverBuckets];
+            }
             long sharedLoopCounter = 0;
             using (var progress = new ProgressBar())
             {
@@ -72,7 +75,7 @@ namespace Poker_MCCFRM
                             cardsTarget[6] = cardRiver;
 
                             long indexRiver = Global.indexer_2_5.indexLast(cardsTarget);
-                            histogramsTurn[i, OCHSTable.riverIndices[indexRiver]] += 1.0f;
+                            histogramsTurn[i][OCHSTable.riverIndices[indexRiver]] += 1.0f;
 
                             deadCardMask &= ~(1L << cardRiver);
                         }
@@ -136,7 +139,7 @@ namespace Poker_MCCFRM
             // k-means clustering
             DateTime start = DateTime.UtcNow;
             Kmeans kmeans = new Kmeans();
-            turnIndices = kmeans.ClusterEMD(histogramsTurn, Global.nofTurnBuckets, 1);
+            turnIndices = kmeans.ClusterEMDLargeArr(histogramsTurn, Global.nofTurnBuckets, 1);
 
             TimeSpan elapsed = DateTime.UtcNow - start;
             Console.WriteLine("Turn clustering completed in {0}d {1}h {2}m {3}s", elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
