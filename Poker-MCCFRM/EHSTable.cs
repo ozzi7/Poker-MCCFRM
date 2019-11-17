@@ -1,7 +1,6 @@
 ﻿/// Uses Poker Effective Hand Strength (EHS) algorithm to create a lookup table
 /// https://en.wikipedia.org/wiki/Poker_Effective_Hand_Strength_(EHS)_algorithm
 /// http://www.cs.virginia.edu/~evans/poker/wp-content/uploads/2011/02/opponent_modeling_in_poker_billings.pdf
-/// TODO: EHSTable not used currently
 /// 
 using SnapCall;
 using System;
@@ -16,37 +15,35 @@ namespace Poker_MCCFRM
     {
         int[,] tableFlop = new int[3, 3];
         int[,] tableTurn = new int[3, 3];
-        float[] EHSFlop = new float[1286792];
-        float[] EHSTurn = new float[13960050];
-        float[,] histogramsFlop = new float[1286792, 50];
+        static float[] EHSFlop = new float[1286792];
+        static float[] EHSTurn = new float[13960050];
+        float[,] histogramsFlop = new float[1286792, Global.flopHistogramSize];
+        private static string EHSTable5Cards = "EHSTable5Cards.txt";
+        private static string EHSTable6Cards = "EHSTable6Cards.txt";
 
-        public EHSTable(Evaluator evaluator, HandIndexer privFlopIndexer, HandIndexer privFlopTurnIndexer)
+        public EHSTable()
         {
             // In essence, go through the 2+3 HandIndexer set and combine with opponent, turn, river
             // 1286792 * 1081*990 = 1 377 111 930 480 combinations
 
-            string fileName = "EHSTable5Cards.txt";
-            if (fileName != null && File.Exists(fileName))
-            {
-                if (File.Exists(fileName))
-                {
-                    Console.WriteLine("Loading EHS Table 5 Cards from {0}", "EHSTable5Cards.txt");
-                    LoadFromFile("EHSTable5Cards.txt");
-                    Console.WriteLine("Loading EHS Table 6 Cards from {0}", "EHSTable6Cards.txt");
-                    LoadFromFile("EHSTable6Cards.txt");
-                }
-            }
-            else
-            {
-                Calculate5Cards(evaluator, privFlopIndexer);
-                Calculate6Cards(evaluator, privFlopTurnIndexer);
+            LoadFromFile();
 
+            if (EHSFlop == null)
+            {
+                Generate5CardsTable();
+                SaveToFile();
+                Generate6CardTable();
                 SaveToFile();
             }
-            CalculateFlopHistograms(evaluator, privFlopIndexer);
-            ClusterFlop(privFlopIndexer);
+            else if(EHSTurn == null)
+            {
+                Generate6CardTable();
+                SaveToFile();
+            }
+            CalculateFlopHistograms();
+            ClusterFlop();
         }
-        private void ClusterFlop(HandIndexer indexerFlop)
+        private void ClusterFlop()
         {
             //Console.WriteLine("Generating {0} clusters from {1} hands for the Flop, using histograms of length {2}...",
             //    9000, indexerFlop.roundSize[0], nofOpponentClusters);
@@ -76,7 +73,7 @@ namespace Poker_MCCFRM
             //TimeSpan elapsed = DateTime.UtcNow - start;
             //Console.WriteLine("River clustering completed completed in {0:0.00}s", elapsed.TotalSeconds);
         }
-        private void Calculate5Cards(Evaluator evaluator, HandIndexer indexer)
+        private void Generate5CardsTable()
         {
             Console.WriteLine("Calculating Effective Hand Strength Table For 2 + 3 (1286792)");
             int[] cards = new int[5];
@@ -86,7 +83,7 @@ namespace Poker_MCCFRM
             {
                 tableFlop = new int[3, 3];
 
-                indexer.unindex(indexer.rounds - 1, i, cards);
+                Global.indexer_2_3.unindex(Global.indexer_2_3.rounds - 1, i, cards);
                 deadCardMask |= (1L << cards[0]) + (1L << cards[1]) + (1L << cards[2]) + (1L << cards[3]) + (1L << cards[4]);
 
                 for (int card1Opponent = 0; card1Opponent < 51; card1Opponent++)
@@ -125,10 +122,10 @@ namespace Poker_MCCFRM
                                 ulong handFiveCards = (1uL << cards[0]) + (1uL << cards[1]) + (1uL << cards[2]) + (1uL << cards[3]) + (1uL << cards[4]);
                                 ulong handOpponentFiveCards = (1uL << card1Opponent) + (1uL << card2Opponent) + (1uL << cards[2]) + (1uL << cards[3]) + (1uL << cards[4]);
 
-                                int valueFiveCards = evaluator.Evaluate(handFiveCards);
-                                int valueOpponentFiveCards = evaluator.Evaluate(handOpponentFiveCards);
-                                int valueSevenCards = evaluator.Evaluate(handSevenCards);
-                                int valueOpponentSevenCards = evaluator.Evaluate(handOpponentSevenCards);
+                                int valueFiveCards = Global.handEvaluator.Evaluate(handFiveCards);
+                                int valueOpponentFiveCards = Global.handEvaluator.Evaluate(handOpponentFiveCards);
+                                int valueSevenCards = Global.handEvaluator.Evaluate(handSevenCards);
+                                int valueOpponentSevenCards = Global.handEvaluator.Evaluate(handOpponentSevenCards);
 
                                 int index5Cards = (valueFiveCards > valueOpponentFiveCards ? 0 : valueFiveCards == valueOpponentFiveCards ? 1 : 2);
                                 int index7Cards = (valueSevenCards > valueOpponentSevenCards ? 0 : valueSevenCards == valueOpponentSevenCards ? 1 : 2);
@@ -146,9 +143,9 @@ namespace Poker_MCCFRM
                     deadCardMask &= ~(1L << card1Opponent);
                 }
 
-                float behind7 = tableFlop[0, 2] + tableFlop[1, 2] + tableFlop[2, 2];
-                float tied7 = tableFlop[0, 1] + tableFlop[1, 1] + tableFlop[2, 1];
-                float ahead7 = tableFlop[0, 0] + tableFlop[1, 0] + tableFlop[2, 0];
+                //float behind7 = tableFlop[0, 2] + tableFlop[1, 2] + tableFlop[2, 2];
+                //float tied7 = tableFlop[0, 1] + tableFlop[1, 1] + tableFlop[2, 1];
+                //float ahead7 = tableFlop[0, 0] + tableFlop[1, 0] + tableFlop[2, 0];
 
                 float behind5 = tableFlop[2, 0] + tableFlop[2, 1] + tableFlop[2, 2];
                 float tied5 = tableFlop[1, 0] + tableFlop[1, 1] + tableFlop[1, 2];
@@ -157,12 +154,13 @@ namespace Poker_MCCFRM
                 float handstrength5 = (ahead5 + tied5 / 2.0f) / (ahead5 + tied5 + behind5);
                 float Ppot5 = (behind5 + tied5 == 0) ? 0 : (tableFlop[2, 0] + tableFlop[2, 1] / 2.0f + tableFlop[1, 0] / 2.0f) / (behind5 + tied5);
                 float NPot5 = (ahead5 + tied5 == 0) ? 0 : (tableFlop[0, 2] + tableFlop[1, 2] / 2.0f + tableFlop[0, 1] / 2.0f) / (ahead5 + tied5);
-                EHSFlop[i] = handstrength5 * (1 - NPot5) + (1 - handstrength5) * Ppot5;
+                EHSFlop[i] = handstrength5 * (1 - NPot5) + (1 - handstrength5) * Ppot5; // for each 2+3 card combo measure ehs 
+                // (combo of current strength + river strength but single number)
 
                 progress.Report((double)(i + 1) / 1286792, i);
             }
         }
-        private void Calculate6Cards(Evaluator evaluator, HandIndexer indexer)
+        private void Generate6CardTable()
         {
             Console.WriteLine("Calculating Effective Hand Strength Table For 2 + 4 (13960050)");
             int[] cards = new int[6];
@@ -172,7 +170,7 @@ namespace Poker_MCCFRM
             {
                 tableTurn = new int[3, 3];
 
-                indexer.unindex(indexer.rounds - 1, i, cards);
+                Global.indexer_2_4.unindex(Global.indexer_2_4.rounds - 1, i, cards);
                 deadCardMask |= (1L << cards[0]) + (1L << cards[1]) + (1L << cards[2]) + (1L << cards[3]) + (1L << cards[4]);
 
                 for (int card1Opponent = 0; card1Opponent < 51; card1Opponent++)
@@ -211,10 +209,10 @@ namespace Poker_MCCFRM
                                 ulong handSevenCards = (1uL << cards[0]) + (1uL << cards[1]) + (1uL << cards[2]) + (1uL << cards[3]) + (1uL << cards[4]) + (1uL << cardTurn) + (1uL << cardRiver);
                                 ulong handOpponentSevenCards = (1uL << card1Opponent) + (1uL << card2Opponent) + (1uL << cards[2]) + (1uL << cards[3]) + (1uL << cards[4]) + (1uL << cardTurn) + (1uL << cardRiver);
 
-                                int valueSevenCards = evaluator.Evaluate(handSevenCards);
-                                int valueOpponentSevenCards = evaluator.Evaluate(handOpponentSevenCards);
-                                int valueSixCards = evaluator.Evaluate(handSixCards);
-                                int valueOpponentSixCards = evaluator.Evaluate(handOpponentSixCards);
+                                int valueSevenCards = Global.handEvaluator.Evaluate(handSevenCards);
+                                int valueOpponentSevenCards = Global.handEvaluator.Evaluate(handOpponentSevenCards);
+                                int valueSixCards = Global.handEvaluator.Evaluate(handSixCards);
+                                int valueOpponentSixCards = Global.handEvaluator.Evaluate(handOpponentSixCards);
 
                                 int index6Cards = (valueSixCards > valueOpponentSixCards ? 0 : valueSixCards == valueOpponentSixCards ? 1 : 2);
                                 int index7Cards = (valueSevenCards > valueOpponentSevenCards ? 0 : valueSevenCards == valueOpponentSevenCards ? 1 : 2);
@@ -227,7 +225,6 @@ namespace Poker_MCCFRM
 
                         }
                         deadCardMask &= ~(1L << card2Opponent);
-
                     }
                     deadCardMask &= ~(1L << card1Opponent);
                 }
@@ -248,7 +245,7 @@ namespace Poker_MCCFRM
                 progress.Report((double)(i + 1) / 13960050,i);
             }
         }
-        private void CalculateFlopHistograms(Evaluator evaluator, HandIndexer indexer)
+        private void CalculateFlopHistograms()
         {
             Console.WriteLine("Calculating Histograms for flop");
 
@@ -261,7 +258,7 @@ namespace Poker_MCCFRM
                  i => {
                      int[] cards = new int[5];
                      int[] table = new int[3];
-                     indexer.unindex(indexer.rounds - 1, i, cards);
+                     Global.indexer_2_3.unindex(Global.indexer_2_3.rounds - 1, i, cards);
                      long deadCardMask = (1L << cards[0]) + (1L << cards[1]) + (1L << cards[2]) + (1L << cards[3]) + (1L << cards[4]);
 
                      for (int cardTurn = 0; cardTurn < 52; cardTurn++)
@@ -299,8 +296,8 @@ namespace Poker_MCCFRM
                                      ulong handSevenCards = (1uL << cards[0]) + (1uL << cards[1]) + (1uL << cards[2]) + (1uL << cards[3]) + (1uL << cards[4]) + (1uL << cardTurn) + (1uL << cardRiver);
                                      ulong handOpponentSevenCards = (1uL << card1Opponent) + (1uL << card2Opponent) + (1uL << cards[2]) + (1uL << cards[3]) + (1uL << cards[4]) + (1uL << cardTurn) + (1uL << cardRiver);
 
-                                     int valueSevenCards = evaluator.Evaluate(handSevenCards);
-                                     int valueOpponentSevenCards = evaluator.Evaluate(handOpponentSevenCards);
+                                     int valueSevenCards = Global.handEvaluator.Evaluate(handSevenCards);
+                                     int valueOpponentSevenCards = Global.handEvaluator.Evaluate(handOpponentSevenCards);
 
                                      int index7Cards = (valueSevenCards > valueOpponentSevenCards ? 0 : valueSevenCards == valueOpponentSevenCards ? 1 : 2);
 
@@ -312,7 +309,7 @@ namespace Poker_MCCFRM
                              }                             
                              float equity = (table[0] + table[1] / 2.0f) / (table[0] + table[1] + table[2]);
 
-                             histogramsFlop[i, (Math.Min(49, (int)(equity * 50.0f)))] += 1;
+                             histogramsFlop[i, (Math.Min((Global.flopHistogramSize-1), (int)(equity * Global.flopHistogramSize)))] += 1;
 
                              deadCardMask &= ~(1L << cardRiver);
                          }
@@ -337,28 +334,39 @@ namespace Poker_MCCFRM
             TimeSpan elapsed = DateTime.UtcNow - start;
             Console.WriteLine("Histogram generation completed in {0}", elapsed.TotalSeconds);
         }
-        public void SaveToFile()
+        public static void SaveToFile()
         {
-            Console.WriteLine("Saving table to file EHSTable5Cards.txt");
-
-            using (var fileStream = File.Create("EHSTable5Cards.txt"))
+            if (EHSFlop != null)
             {
+                Console.WriteLine("Saving 5 Card EHS to file {0}", EHSTable5Cards);
+                using var fileStream = File.Create(EHSTable5Cards);
                 BinaryFormatter bf = new BinaryFormatter();
                 bf.Serialize(fileStream, EHSFlop);
             }
-            Console.WriteLine("Saving table to file EHSTable6Cards.txt");
-
-            using (var fileStream = File.Create("EHSTable6Cards.txt"))
+            if (EHSTurn != null)
             {
+                Console.WriteLine("Saving 6 Card EHS to file {0}", EHSTable6Cards);
+                using var fileStream = File.Create(EHSTable6Cards);
                 BinaryFormatter bf = new BinaryFormatter();
                 bf.Serialize(fileStream, EHSTurn);
             }
         }
-        private void LoadFromFile(string filename)
+        private static void LoadFromFile()
         {
-            using var fileStream = File.OpenRead(filename);
-            var binForm = new BinaryFormatter();
-            EHSFlop = (float[])binForm.Deserialize(fileStream);
+            if (File.Exists(EHSTable5Cards))
+            {
+                Console.WriteLine("Loading 5 Card EHS Table {0}", EHSTable5Cards);
+                using var fileStream = File.OpenRead(EHSTable5Cards);
+                var binForm = new BinaryFormatter();
+                EHSFlop = (float[])binForm.Deserialize(fileStream);
+            }
+            if (File.Exists(EHSTable6Cards))
+            {
+                Console.WriteLine("Loading 6 Card EHS Table {0}", EHSTable6Cards);
+                using var fileStream = File.OpenRead(EHSTable6Cards);
+                var binForm = new BinaryFormatter();
+                EHSTurn = (float[])binForm.Deserialize(fileStream);
+            }
         }
     }
 }

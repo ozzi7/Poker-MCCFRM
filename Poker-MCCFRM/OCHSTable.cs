@@ -14,7 +14,7 @@ namespace Poker_MCCFRM
     /// 
     /// cluster starting hands (169) into 8 buckets using earth mover's distance (monte carlo sampling)
     /// then, for each river private state calculate winning chance against each of the 8 buckets (opponent hands)
-    /// so we have 123156254 river combinations (2 + 3 cards), which need to be checked against the opponent cards
+    /// so we have 123156254 river combinations (2 + 5 cards), which need to be checked against the opponent cards
     /// then we use k means with L2 distance metric to cluster all these "histograms" into x buckets
     /// 
     /// </summary>
@@ -23,8 +23,8 @@ namespace Poker_MCCFRM
         public static int[] preflopIndices = null; // has 169 elements to map each starting hand to a cluster
         public static int[] riverIndices = null; // mapping each canonical river hand (7 cards) to a cluster
 
-        static float[,] histogramsPreflop;
-        static float[,] histogramsRiver;
+        static float[][] histogramsPreflop;
+        static float[][] histogramsRiver;
 
         static readonly string filenameOppClusters = "OCHSOpponentClusters.txt";
         static readonly string filenameRiverClusters = "OCHSRiverClusters.txt";
@@ -56,7 +56,11 @@ namespace Poker_MCCFRM
             Console.WriteLine("Calculating {0} opponent clusters for OCHS using Monte Carlo Sampling...", Global.nofOpponentClusters);
             DateTime start = DateTime.UtcNow;
 
-            histogramsPreflop = new float[169, Global.preflopHistogramSize];
+            histogramsPreflop = new float[169][]; // c# doesnt allow more than int max indices (its 2019, bitch pls)
+            for (int i = 0; i < 169; ++i)
+            {
+                histogramsPreflop[i] = new float[Global.preflopHistogramSize];
+            }
             long sharedLoopCounter = 0;
 
             using (var progress = new ProgressBar())
@@ -122,7 +126,7 @@ namespace Poker_MCCFRM
                              }
                          }
                          float equity = (strength[0] + strength[1] / 2.0f) / (strength[0] + strength[1] + strength[2]);
-                         histogramsPreflop[i, (Math.Min(Global.preflopHistogramSize-1, (int)(equity * (float)Global.preflopHistogramSize)))] += 1;
+                         histogramsPreflop[i][(Math.Min(Global.preflopHistogramSize-1, (int)(equity * (float)Global.preflopHistogramSize)))] += 1;
                          deadCardMask = (1L << cards[0]) + (1L << cards[1]);
 
                          Interlocked.Add(ref sharedLoopCounter, 1);
@@ -147,7 +151,7 @@ namespace Poker_MCCFRM
                 Console.Write(": ");
                 for (int j = 0; j < Global.preflopHistogramSize; ++j)
                 {
-                    Console.Write(histogramsPreflop[i,j] + " ");
+                    Console.Write(histogramsPreflop[i][j] + " ");
                 }
                 Console.WriteLine();
             }
@@ -222,7 +226,12 @@ namespace Poker_MCCFRM
             Console.WriteLine("Generating histograms for {0} river hands of length {1} each...", 
                 Global.indexer_2_5.roundSize[1], Global.nofOpponentClusters);
             DateTime start = DateTime.UtcNow;
-            histogramsRiver = new float[Global.indexer_2_5.roundSize[1], Global.nofOpponentClusters];
+
+            histogramsRiver = new float[Global.indexer_2_5.roundSize[1]][];
+            for (int i = 0; i < Global.indexer_2_5.roundSize[1]; ++i)
+            {
+                histogramsRiver[i] = new float[Global.nofOpponentClusters];
+            }
 
             long sharedLoopCounter = 0;
             using (var progress = new ProgressBar())
@@ -267,7 +276,7 @@ namespace Poker_MCCFRM
                                  int winDrawLoss = (valueSevenCards > valueOpponentSevenCards ? 0 : valueSevenCards == valueOpponentSevenCards ? 1 : 2);
 
                                  long indexPreflop = Global.indexer_2.indexLast(new int[] { card1Opponent, card2Opponent });
-                                 histogramsRiver[i, preflopIndices[indexPreflop]] += winDrawLoss == 0 ? 1.0f : winDrawLoss == 0 ? 0.5f : 0.0f;
+                                 histogramsRiver[i][preflopIndices[indexPreflop]] += winDrawLoss == 0 ? 1.0f : winDrawLoss == 0 ? 0.5f : 0.0f;
 
                                  deadCardMask &= ~(1L << card2Opponent);
                              }
@@ -301,7 +310,7 @@ namespace Poker_MCCFRM
             if (histogramsRiver != null)
             {
                 Console.WriteLine("Saving river histograms to file {0}", filenameRiverHistograms);
-                using var fileStream = File.Create(filenameRiverHistograms);
+                using var fileStream = File.Create("OCHSRiverHistograms_new.txt");
                 BinaryFormatter bf = new BinaryFormatter();
                 bf.Serialize(fileStream, histogramsRiver);
             }
@@ -330,8 +339,9 @@ namespace Poker_MCCFRM
                     Console.WriteLine("Loading river histograms from file {0}", filenameRiverHistograms);
                     using var fileStream = File.OpenRead(filenameRiverHistograms);
                     var binForm = new BinaryFormatter();
-                    histogramsRiver = (float[,])binForm.Deserialize(fileStream);
+                    histogramsRiver = (float[][])binForm.Deserialize(fileStream);
                 }
+
                 if (File.Exists(filenameOppClusters))
                 {
                     Console.WriteLine("Loading flop opponent clusters from file {0}", filenameOppClusters);

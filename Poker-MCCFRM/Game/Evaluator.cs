@@ -65,7 +65,7 @@ namespace SnapCall
             }
 
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("Hand evaluator setup completed in {0}", elapsed.TotalSeconds);
+            Console.WriteLine("Hand evaluator setup completed in {0}d {1}h {2}m {3}s", elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
             loaded = true;
         }
 

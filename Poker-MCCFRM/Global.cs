@@ -35,6 +35,9 @@ namespace Poker_MCCFRM
         public const int nofMCSimsPerPreflopHand = 500000;
         // for the river, determines the river histogram size (in theory could be up to 169 but will be very slow) default 8
         public const int nofOpponentClusters = 16;
+        public const int flopHistogramSize = 50;
+        public const int turnHistogramSize = 50;
+
         // this is used to create the nofOpponentClusters, it can be increased (default 50)
         // with little time penalty because the clustering for 169 hands is very fast
         public const int preflopHistogramSize = 100;
@@ -44,6 +47,8 @@ namespace Poker_MCCFRM
         public static HandIndexer indexer_2_3;
         public static HandIndexer indexer_2_4;
         public static HandIndexer indexer_2_5;
+        public static HandIndexer indexer_2_3_1;
+        public static HandIndexer indexer_2_3_1_1;
         public static HandIndexer indexer_2_5_2;
         public static Evaluator handEvaluator;
 
