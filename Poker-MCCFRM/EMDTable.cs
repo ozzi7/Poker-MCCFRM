@@ -154,7 +154,7 @@ namespace Poker_MCCFRM
             histogramsFlop = new float[Global.indexer_2_3.roundSize[1]][]; // c# doesnt allow more than int max indices (its 2019, bitch pls)
             for (int i = 0; i < Global.indexer_2_3.roundSize[1]; ++i)
             {
-                histogramsFlop[i] = new float[Global.turnHistogramSize];
+                histogramsFlop[i] = new float[Global.flopHistogramSize];
             }
 
             long sharedLoopCounter = 0;
@@ -174,6 +174,10 @@ namespace Poker_MCCFRM
                         Global.indexer_2_3.unindex(Global.indexer_2_3.rounds - 1, i, cardsFlop);
                         long deadCardMask = (1L << cardsFlop[0]) + (1L << cardsFlop[1]) + (1L << cardsFlop[2]) + (1L << cardsFlop[3]) + (1L << cardsFlop[4]);
 
+                        ulong handFlop = (1uL << cardsFlop[0]) + (1uL << cardsFlop[1]) + (1uL << cardsFlop[2]) +
+                            (1uL << cardsFlop[3]) + (1uL << cardsFlop[4]);
+                        int valueFlop = Global.handEvaluator.Evaluate(handFlop);
+
                         for (int cardTurn = 0; cardTurn < 52; cardTurn++)
                         {
                             if (((1L << cardTurn) & deadCardMask) != 0)
@@ -189,8 +193,9 @@ namespace Poker_MCCFRM
                                 }
                                 deadCardMask |= (1L << cardRiver);
 
-                                ulong handSevenCards = (1uL << cardsFlop[0]) + (1uL << cardsFlop[1]) + (1uL << cardsFlop[2]) + (1uL << cardsFlop[3]) +
-                                (1uL << cardsFlop[4]) + (1uL << cardsFlop[5]) + (1uL << cardRiver);
+                                ulong handRiver = (1uL << cardsFlop[0]) + (1uL << cardsFlop[1]) + (1uL << cardsFlop[2]) + (1uL << cardsFlop[3]) +
+                                (1uL << cardsFlop[4]) + (1uL << cardTurn) + (1uL << cardRiver);
+                                int valueRiver = Global.handEvaluator.Evaluate(handRiver);
 
                                 for (int card1Opponent = 0; card1Opponent < 51; card1Opponent++)
                                 {
@@ -198,7 +203,6 @@ namespace Poker_MCCFRM
                                     {
                                         continue;
                                     }
-                                    deadCardMask |= (1L << card1Opponent);
                                     for (int card2Opponent = card1Opponent + 1; card2Opponent < 52; card2Opponent++)
                                     {
                                         if (((1L << card2Opponent) & deadCardMask) != 0)
@@ -206,18 +210,12 @@ namespace Poker_MCCFRM
                                             continue;
                                         }
 
-                                        ulong handRiver = (1uL << cardsFlop[0]) + (1uL << cardsFlop[1]) + (1uL << cardsFlop[2]) + (1uL << cardsFlop[3]) +
-                                            (1uL << cardsFlop[4]) + (1uL << cardTurn) + (1uL << cardRiver);
                                         ulong handOppRiver = (1uL << card1Opponent) + (1uL << card2Opponent) + (1uL << cardsFlop[2]) + (1uL << cardsFlop[3]) +
                                             (1uL << cardsFlop[4]) + (1uL << cardTurn) + (1uL << cardRiver);
-                                        ulong handFlop = (1uL << cardsFlop[0]) + (1uL << cardsFlop[1]) + (1uL << cardsFlop[2]) +
-                                            (1uL << cardsFlop[3]) + (1uL << cardsFlop[4]);
                                         ulong handOppFlop = (1uL << card1Opponent) + (1uL << card2Opponent) + (1uL << cardsFlop[2]) +
                                             (1uL << cardsFlop[3]) + (1uL << cardsFlop[4]);
 
-                                        int valueFlop = Global.handEvaluator.Evaluate(handFlop);
                                         int valueOppFlop = Global.handEvaluator.Evaluate(handOppFlop);
-                                        int valueRiver = Global.handEvaluator.Evaluate(handSevenCards);
                                         int valueOppRiver = Global.handEvaluator.Evaluate(handOppRiver);
 
                                         // index 0 = win, 1 = draw, 2 = loss
@@ -226,7 +224,6 @@ namespace Poker_MCCFRM
 
                                         countTable[indexFlop, indexRiver] += 1;
                                     }
-                                    deadCardMask &= ~(1L << card1Opponent);
                                 }
                                 deadCardMask &= ~(1L << cardRiver);
                             }
