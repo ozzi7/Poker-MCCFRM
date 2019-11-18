@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Poker_MCCFRM;
 using SnapCall;
 
 namespace Poker_MCCFRM
@@ -19,6 +16,14 @@ namespace Poker_MCCFRM
         {
             CreateIndexers();
             Global.handEvaluator = new Evaluator();
+
+            //temp
+            LoadFromFile();
+            CalculateInformationAbstraction();
+            Trainer t = new Trainer(0);
+            while(true)
+                t.PlayOneGame();
+
             CalculateInformationAbstraction();
             Train();
         }
@@ -95,7 +100,7 @@ namespace Poker_MCCFRM
         {
             Console.WriteLine("Starting Monte Carlo Counterfactual Regret Minimization (MCCFRM)...");
 
-            long StrategyInterval = 100/Global.NOF_THREADS; ; // bb rounds before updating player strategy (recursive through tree) 10k
+            long StrategyInterval = Math.Max(1,10/Global.NOF_THREADS); ; // bb rounds before updating player strategy (recursive through tree) 10k
             long PruneThreshold = 50000000/Global.NOF_THREADS; // bb rounds after this time we stop checking all actions, 200 minutes
             long LCFRThreshold = 10000000/Global.NOF_THREADS; // bb rounds when to stop discounting old regrets, no clue what it should be
             long DiscountInterval = 1000000/Global.NOF_THREADS; // bb rounds, discount values periodically but not every round, 10 minutes
@@ -123,7 +128,7 @@ namespace Poker_MCCFRM
                             Console.WriteLine("Training steps " + sharedLoopCounter);
                             trainer.PrintStartingHandsChart();
                             trainer.PrintStatistics(sharedLoopCounter);
-                            Console.WriteLine("Iterations per second: {0}",1000 * sharedLoopCounter / stopwatch.ElapsedMilliseconds);
+                            Console.WriteLine("Iterations per second: {0}",1000 * sharedLoopCounter / (stopwatch.ElapsedMilliseconds+1));
                             Console.WriteLine();
                         }
                         for (int traverser = 0; traverser < Global.nofPlayers; traverser++) // traverser 

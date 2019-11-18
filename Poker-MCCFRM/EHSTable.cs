@@ -2,7 +2,6 @@
 /// https://en.wikipedia.org/wiki/Poker_Effective_Hand_Strength_(EHS)_algorithm
 /// http://www.cs.virginia.edu/~evans/poker/wp-content/uploads/2011/02/opponent_modeling_in_poker_billings.pdf
 /// 
-using SnapCall;
 using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;

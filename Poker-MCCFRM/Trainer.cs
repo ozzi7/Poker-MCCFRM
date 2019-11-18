@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading.Tasks;
 
 
 namespace Poker_MCCFRM
@@ -167,6 +161,65 @@ namespace Poker_MCCFRM
                 return TraverseMCCFRPruned(gs.children[randomIndex], traverser);
             }
         }
+        public void PlayOneGame()
+        {
+            ResetGame();
+            State gs = rootState;
+            bool first = true;
+            while (!(gs is TerminalState))
+            {
+                if (gs is ChanceState)
+                {
+                    // sample a from chance
+                    gs = gs.DoRandomAction();
+
+                    Console.WriteLine();
+
+                    if (first)
+                    {
+                        Console.Write("Player Cards: ");
+                        for (int i = 0; i < Global.nofPlayers; ++i)
+                        {
+                            List<Card> playerCards = new List<Card>();
+                            playerCards.Add(new Card(gs.playerCards[i].Item1));
+                            playerCards.Add(new Card(gs.playerCards[i].Item2));
+                            playerCards[0].PrintBeautifulString();
+                            playerCards[1].PrintBeautifulString(" ");
+                        }
+                        first = false;
+                    }
+                    else
+                    {
+                        if (gs.tableCards.Count != 0)
+                            Console.Write("Table Cards: ");
+                        List<Card> tableCards = new List<Card>();
+                        for (int i = 0; i < gs.tableCards.Count; ++i)
+                        {
+                            new Card(gs.tableCards[i]).PrintBeautifulString();
+                        }
+                    }
+                }
+                else if(gs is PlayState)
+                {
+                    Console.WriteLine();
+                    Console.Write("Player {0}'s turn : ", gs.playerToMove);
+                    Infoset infoset = gs.GetInfoset();
+                    float[] sigma = infoset.CalculateStrategy();
+
+                    int randomIndex = Util.SampleDistribution(sigma);
+                    gs.CreateChildren();
+                    gs = gs.children[randomIndex];
+                    Console.Write(gs.history[gs.history.Count-1]);
+                }
+            }
+            Console.WriteLine();
+            Console.Write("Rewards: ");
+            for (int i = 0; i < Global.nofPlayers; ++i)
+            {
+                Console.Write(gs.GetReward(i)+ " ");
+            }
+            Console.WriteLine();
+        }
         private float TraverseMCCFR(State gs, int traverser, int iteration)
         {
             if (gs is TerminalState)
@@ -295,13 +348,11 @@ namespace Poker_MCCFRM
                             Console.Write("A ");
                     }
 
-                    if (phi[i] <= 0.2)
-                        Console.ForegroundColor = ConsoleColor.DarkRed;
-                    else if (phi[i] <= 0.4)
+                    if (phi[i] <= 0.25)
                         Console.ForegroundColor = ConsoleColor.Red;
-                    else if (phi[i] <= 0.6)
+                    else if (phi[i] <= 0.5)
                         Console.ForegroundColor = ConsoleColor.DarkRed;
-                    else if (phi[i] <= 0.8)
+                    else if (phi[i] <= 0.75)
                         Console.ForegroundColor = ConsoleColor.DarkGreen;
                     else if (phi[i] <= 1.0)
                         Console.ForegroundColor = ConsoleColor.Green;

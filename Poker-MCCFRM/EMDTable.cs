@@ -178,14 +178,14 @@ namespace Poker_MCCFRM
                             (1uL << cardsFlop[3]) + (1uL << cardsFlop[4]);
                         int valueFlop = Global.handEvaluator.Evaluate(handFlop);
 
-                        for (int cardTurn = 0; cardTurn < 52; cardTurn++)
+                        for (int cardTurn = 0; cardTurn < 51; cardTurn++)
                         {
                             if (((1L << cardTurn) & deadCardMask) != 0)
                             {
                                 continue;
                             }
                             deadCardMask |= (1L << cardTurn);
-                            for (int cardRiver = 0; cardRiver < 52; cardRiver++)
+                            for (int cardRiver = cardTurn+1; cardRiver < 52; cardRiver++)
                             {
                                 if (((1L << cardRiver) & deadCardMask) != 0)
                                 {
@@ -225,23 +225,20 @@ namespace Poker_MCCFRM
                                         countTable[indexFlop, indexRiver] += 1;
                                     }
                                 }
+                                // save the equity in histogram
+                                float behindFlop = countTable[2, 0] + countTable[2, 1] + countTable[2, 2];
+                                float tiedFlop = countTable[1, 0] + countTable[1, 1] + countTable[1, 2];
+                                float aheadFlop = countTable[0, 0] + countTable[0, 1] + countTable[0, 2];
+
+                                float handstrengthFlop = (aheadFlop + tiedFlop / 2.0f) / (aheadFlop + tiedFlop + behindFlop);
+                                float PpotFlop = (behindFlop + tiedFlop == 0) ? 0 : (countTable[2, 0] + countTable[2, 1] / 2.0f + countTable[1, 0] / 2.0f) / (behindFlop + tiedFlop);
+                                float NPotFlop = (aheadFlop + tiedFlop == 0) ? 0 : (countTable[0, 2] + countTable[1, 2] / 2.0f + countTable[0, 1] / 2.0f) / (aheadFlop + tiedFlop);
+
+                                histogramsFlop[i][Math.Min(Global.flopHistogramSize - 1,
+                                    (int)(Global.flopHistogramSize * (handstrengthFlop * (1 - NPotFlop) + (1 - handstrengthFlop) * PpotFlop)))] += 1;
+
                                 deadCardMask &= ~(1L << cardRiver);
                             }
-                            // save the equity in histogram
-                            float behindRiver = countTable[0, 2] + countTable[1, 2] + countTable[2, 2];
-                            float tiedRiver = countTable[0, 1] + countTable[1, 1] + countTable[2, 1];
-                            float aheadRiver = countTable[0, 0] + countTable[1, 0] + countTable[2, 0];
-
-                            float behindFlop = countTable[2, 0] + countTable[2, 1] + countTable[2, 2];
-                            float tiedFlop = countTable[1, 0] + countTable[1, 1] + countTable[1, 2];
-                            float aheadFlop = countTable[0, 0] + countTable[0, 1] + countTable[0, 2];
-
-                            float handstrengthFlop = (aheadFlop + tiedFlop / 2.0f) / (aheadFlop + tiedFlop + behindFlop);
-                            float PpotFlop = (behindFlop + tiedFlop == 0) ? 0 : (countTable[2, 0] + countTable[2, 1] / 2.0f + countTable[1, 0] / 2.0f) / (behindFlop + tiedFlop);
-                            float NPotFlop = (aheadFlop + tiedFlop == 0) ? 0 : (countTable[0, 2] + countTable[1, 2] / 2.0f + countTable[0, 1] / 2.0f) / (aheadFlop + tiedFlop);
-
-                            histogramsFlop[i][Math.Min(Global.turnHistogramSize -1,
-                                (int)(Global.turnHistogramSize * (handstrengthFlop * (1 - NPotFlop) + (1 - handstrengthFlop) * PpotFlop)))] += 1;
 
                             deadCardMask &= ~(1L << cardTurn);
                         }
@@ -258,7 +255,7 @@ namespace Poker_MCCFRM
             // k-means clustering
             DateTime start = DateTime.UtcNow;
             Kmeans kmeans = new Kmeans();
-            turnIndices = kmeans.ClusterEMD(histogramsTurn, Global.nofTurnBuckets, 1);
+            turnIndices = kmeans.ClusterEMD(histogramsTurn, Global.nofTurnBuckets, 1, "TurnClusterTemp.txt");
 
             TimeSpan elapsed = DateTime.UtcNow - start;
             Console.WriteLine("Turn clustering completed in {0}d {1}h {2}m {3}s", elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
@@ -286,7 +283,7 @@ namespace Poker_MCCFRM
             // k-means clustering
             DateTime start = DateTime.UtcNow;
             Kmeans kmeans = new Kmeans();
-            flopIndices = kmeans.ClusterEMD(histogramsFlop, Global.nofFlopBuckets, 1);
+            flopIndices = kmeans.ClusterEMD(histogramsFlop, Global.nofFlopBuckets, 1, "FlopClusterTemp.txt");
 
             TimeSpan elapsed = DateTime.UtcNow - start;
             Console.WriteLine("Flop clustering completed in {0}d {1}h {2}m {3}s", elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
@@ -328,7 +325,7 @@ namespace Poker_MCCFRM
             if (histogramsFlop != null)
             {
                 Console.WriteLine("Saving flop histograms to file {0}", filenameEMDFlopHistogram);
-                using var fileStream = File.Create(filenameEMDFlopTable);
+                using var fileStream = File.Create(filenameEMDFlopHistogram);
                 BinaryFormatter bf = new BinaryFormatter();
                 bf.Serialize(fileStream, filenameEMDFlopHistogram);
             }

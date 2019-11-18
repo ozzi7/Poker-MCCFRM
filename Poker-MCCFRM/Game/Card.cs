@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Poker_MCCFRM
 {
-	using Enums;
+    using Enums;
 
-	public class Card
+    public class Card
     {
 		public static ConsoleColor[] SuitColors = { ConsoleColor.Green, ConsoleColor.Red, ConsoleColor.Cyan, ConsoleColor.White };
 
@@ -115,5 +111,12 @@ namespace Poker_MCCFRM
 
             return ranks[(int)Rank].ToString();// + suits[(int)Suit].ToString();
 		}
-	}
+        public void PrintBeautifulString(string end = "")
+        {
+            Console.ForegroundColor = SuitColors[(int)this.Suit];
+            Console.Write("{0}", this);
+            Console.ResetColor();
+            Console.Write(end);
+        }
+    }
 }

@@ -64,15 +64,16 @@ namespace Poker_MCCFRM
         }
         public int GetLastPlayer(int playerThatRaised)
         {
+            int last = -1;
             for (int i = (playerThatRaised + 1) % Global.nofPlayers; i != (playerThatRaised) % Global.nofPlayers;
                 i = (i + 1) % Global.nofPlayers)
             {
                 if (isPlayerIn[i] && lastActions[i] != ACTION.ALLIN)
                 {
-                    return i;
+                    last = i;
                 }
             }
-            return lastPlayer;
+            return last;
         }
         public int GetNumberOfPlayersThatNeedToAct()
         {

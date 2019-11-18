@@ -1,5 +1,4 @@
-﻿using SnapCall;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -160,7 +159,7 @@ namespace Poker_MCCFRM
         {
             // k-means clustering
             Kmeans kmeans = new Kmeans();
-            preflopIndices = kmeans.ClusterEMD(histogramsPreflop, Global.nofOpponentClusters, 100);
+            preflopIndices = kmeans.ClusterEMD(histogramsPreflop, Global.nofOpponentClusters, 100, "PreflopClusterTemp.txt");
 
             Console.WriteLine("Created the following cluster for starting hands: ");
             List<Hand> startingHands = Utilities.GetStartingHandChart();

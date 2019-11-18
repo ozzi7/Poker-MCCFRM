@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,7 +21,7 @@ namespace Poker_MCCFRM
         /// <param name="data"></param>
         /// <param name="k"></param>
         /// <returns></returns>
-        public int[] ClusterEMD(float[][] data, int k, int nofRuns)
+        public int[] ClusterEMD(float[][] data, int k, int nofRuns, string tempFileName)
         {
             Console.WriteLine("K-means++ (EMD) clustering {0} elements into {1} clusters with {2} runs...", data.Count(), k, nofRuns);
 
@@ -129,12 +128,12 @@ namespace Poker_MCCFRM
                         Console.WriteLine("Less than {0}% change in average distance, saving intermediate table to file...",
                            saveToFileMinImprovement * 100.0);
 
-                        Console.WriteLine("Saving river cluster index to file riverCluster_temp.txt");
-                        using var fileStream = File.Create("turnCluster_temp.txt");
+                        Console.WriteLine("Saving cluster index to file {0}", tempFileName);
+                        using var fileStream = File.Create(tempFileName);
                         BinaryFormatter bf = new BinaryFormatter();
                         bf.Serialize(fileStream, recordCenters);
 
-                        saveToFileMinImprovement *= 0.75f;
+                        saveToFileMinImprovement *= 0.5f;
                     }
 
                     lastDistance = totalDistance;

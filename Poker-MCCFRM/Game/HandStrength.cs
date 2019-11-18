@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Poker_MCCFRM
 {
-	public class HandStrength : IComparable<HandStrength>
+    public class HandStrength : IComparable<HandStrength>
 	{
 		public HandRanking HandRanking { get; set; }
 		public List<int> Kickers { get; set; }

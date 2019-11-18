@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Poker_MCCFRM
+﻿namespace Poker_MCCFRM
 {
-	public class Deck
+    public class Deck
 	{
 		private ulong[] cards;
 		private ulong removedCards;

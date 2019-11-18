@@ -1,10 +1,7 @@
 ﻿// http://www.cs.cmu.edu/~./kwaugh/publications/isomorphism13.pdf
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Numerics;
 
 namespace Poker_MCCFRM
