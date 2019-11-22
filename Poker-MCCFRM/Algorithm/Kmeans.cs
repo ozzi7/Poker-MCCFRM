@@ -114,6 +114,9 @@ namespace Poker_MCCFRM
                     {
                         distanceChanged = false;
                     }
+                    Console.WriteLine(data.Count());
+                    Console.WriteLine(data[0].Count());
+
                     double diff = lastDistance - totalDistance;
                     if (totalDistance < recordDistance)
                     {
@@ -291,28 +294,15 @@ namespace Poker_MCCFRM
 
                 for (int c = 0; c < k; ++c) // get a new cluster center one by one
                 {
+                    double[] distancesToBestCenter = Enumerable.Repeat(double.MaxValue, data.Count()).ToArray();
+
                     if (c == 0)
                     {
                         index = RandomGen.Next(0, data.GetLength(0));
                         centerIndices.Add(index);
                         CopyArray(data, centers, index, c);
 
-                        Parallel.For(0, Global.NOF_THREADS,
-                          i =>
-                          {
-                              for (int j = Util.GetWorkItemsIndices(data.GetLength(0), Global.NOF_THREADS, i).Item1;
-                                                          j < Util.GetWorkItemsIndices(data.GetLength(0), Global.NOF_THREADS, i).Item2; ++j)
-                              { // go through all data
-                                      for (int m = 0; m < c; ++m) // go through centers
-                                      {
-                                      double tempDistance = GetL2DistanceSquared(data, centers, j, m);
-                                      if (tempDistance < distancesToBestCenter[j])
-                                      {
-                                          distancesToBestCenter[j] = tempDistance;
-                                      }
-                                  }
-                              }
-                          });
+                        continue;
                     }
                     else
                     {
@@ -322,11 +312,13 @@ namespace Poker_MCCFRM
                             for (int j = Util.GetWorkItemsIndices(data.GetLength(0), Global.NOF_THREADS, i).Item1;
                                                         j < Util.GetWorkItemsIndices(data.GetLength(0), Global.NOF_THREADS, i).Item2; ++j)
                             { // go through all data
-
-                                    double tempDistance = GetL2DistanceSquared(data, centers, j, c - 1);
-                                if (tempDistance < distancesToBestCenter[j])
+                                for (int m = 0; m < c; ++m) // go through centers
                                 {
-                                    distancesToBestCenter[j] = tempDistance;
+                                    double tempDistance = GetL2DistanceSquared(data, centers, j, m);
+                                    if (tempDistance < distancesToBestCenter[j])
+                                    {
+                                        distancesToBestCenter[j] = tempDistance;
+                                    }
                                 }
                             }
                         });
@@ -340,7 +332,7 @@ namespace Poker_MCCFRM
                         {
                             centerIndexSample = Util.SampleDistribution(distancesToBestCenter);
                         }
-                        CopyArray(data, centers, index, c);
+                        CopyArray(data, centers, centerIndexSample, c);
                         centerIndices.Add(centerIndexSample);
                     }
                     progress.Report((double)(c + 1) / k, c + 1);
@@ -361,66 +353,59 @@ namespace Poker_MCCFRM
             using (var progress = new ProgressBar())
             {
                 progress.Report((double)(1) / k, 1);
-                double[] distancesToBestCenter = Enumerable.Repeat(double.MaxValue, data.Count()).ToArray();
 
                 for (int c = 0; c < k; ++c) // get a new cluster center one by one
                 {
+                    double[] distancesToBestCenter = Enumerable.Repeat(double.MaxValue, data.Count()).ToArray();
                     if (c == 0)
                     {
                         index = RandomGen.Next(0, data.Count());
                         centerIndices.Add(index);
                         CopyArray(data, centers, index, c);
 
-                        Parallel.For(0, Global.NOF_THREADS,
-                          i =>
-                          {
-                              for (int j = Util.GetWorkItemsIndices(data.Count(), Global.NOF_THREADS, i).Item1;
-                                                          j < Util.GetWorkItemsIndices(data.Count(), Global.NOF_THREADS, i).Item2; ++j)
-                              { // go through all data
-                                  for (int m = 0; m < c; ++m) // go through centers
-                                  {
-                                      double tempDistance = GetEarthMoverDistance(data, centers, j, m);
-                                      if (tempDistance < distancesToBestCenter[j])
-                                      {
-                                          distancesToBestCenter[j] = tempDistance;
-                                      }
-                                  }
-                              }
-                          });
+                        continue;
                     }
-                    else
-                    {
-                        Parallel.For(0, Global.NOF_THREADS,
-                        i =>
-                        {
-                            for (int j = Util.GetWorkItemsIndices(data.Count(), Global.NOF_THREADS, i).Item1;
-                                                        j < Util.GetWorkItemsIndices(data.Count(), Global.NOF_THREADS, i).Item2; ++j)
-                            { // go through all data
-
-                                double tempDistance = GetEarthMoverDistance(data, centers, j, c - 1);
+                    Parallel.For(0, Global.NOF_THREADS,
+                      i =>
+                      {
+                          for (int j = Util.GetWorkItemsIndices(data.Count(), Global.NOF_THREADS, i).Item1;
+                                                      j < Util.GetWorkItemsIndices(data.Count(), Global.NOF_THREADS, i).Item2; ++j)
+                          { // go through all data
+                            for (int m = 0; m < c; ++m) // go through centers
+                            {
+                                double tempDistance = GetEarthMoverDistance(data, centers, j, m);
                                 if (tempDistance < distancesToBestCenter[j])
                                 {
                                     distancesToBestCenter[j] = tempDistance;
                                 }
                             }
-                        });
-                        double sum = distancesToBestCenter.Sum();
-                        for (int p = 0; p < distancesToBestCenter.Count(); ++p)
-                        {
-                            distancesToBestCenter[p] /= sum;
-                        }
-                        int centerIndexSample = Util.SampleDistribution(distancesToBestCenter);
-                        while (centerIndices.Contains(centerIndexSample))
-                        {
-                            centerIndexSample = Util.SampleDistribution(distancesToBestCenter);
-                        }
-                        CopyArray(data, centers, index, c);
-                        centerIndices.Add(centerIndexSample);
+                          }
+                      });
+                    Square(distancesToBestCenter);
+                    double sum = distancesToBestCenter.Sum();
+                    for (int p = 0; p < distancesToBestCenter.Count(); ++p)
+                    {
+                        distancesToBestCenter[p] /= sum;
                     }
+                    int centerIndexSample = Util.SampleDistribution(distancesToBestCenter);
+                    while (centerIndices.Contains(centerIndexSample))
+                    {
+                        centerIndexSample = Util.SampleDistribution(distancesToBestCenter);
+                    }
+                    CopyArray(data, centers, centerIndexSample, c);
+                    centerIndices.Add(centerIndexSample);
+                    
                     progress.Report((double)(c + 1) / k, c + 1);
                 }
             }
             return centers;
+        }
+        private static void Square(double[] a)
+        {
+            for (int i = 0; i < a.Length; i++)
+            {
+                a[i] = a[i] * a[i];
+            }
         }
         private void CopyArray(float[][] data, float[,] centers, int indexData, int indexCenter)
         {

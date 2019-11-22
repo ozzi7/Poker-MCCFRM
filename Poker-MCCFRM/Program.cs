@@ -18,11 +18,11 @@ namespace Poker_MCCFRM
             Global.handEvaluator = new Evaluator();
 
             //temp
-            LoadFromFile();
-            CalculateInformationAbstraction();
-            Trainer t = new Trainer(0);
-            while(true)
-                t.PlayOneGame();
+            //LoadFromFile();
+            //CalculateInformationAbstraction();
+            //Trainer t = new Trainer(0);
+            //while(true)
+            //    t.PlayOneGame();
 
             CalculateInformationAbstraction();
             Train();
@@ -100,7 +100,7 @@ namespace Poker_MCCFRM
         {
             Console.WriteLine("Starting Monte Carlo Counterfactual Regret Minimization (MCCFRM)...");
 
-            long StrategyInterval = Math.Max(1,10/Global.NOF_THREADS); ; // bb rounds before updating player strategy (recursive through tree) 10k
+            long StrategyInterval = Math.Max(1,100/Global.NOF_THREADS); ; // bb rounds before updating player strategy (recursive through tree) 10k
             long PruneThreshold = 50000000/Global.NOF_THREADS; // bb rounds after this time we stop checking all actions, 200 minutes
             long LCFRThreshold = 10000000/Global.NOF_THREADS; // bb rounds when to stop discounting old regrets, no clue what it should be
             long DiscountInterval = 1000000/Global.NOF_THREADS; // bb rounds, discount values periodically but not every round, 10 minutes
@@ -128,6 +128,10 @@ namespace Poker_MCCFRM
                             Console.WriteLine("Training steps " + sharedLoopCounter);
                             trainer.PrintStartingHandsChart();
                             trainer.PrintStatistics(sharedLoopCounter);
+                            for (int z = 0; z < 20; z++)
+                            {
+                                trainer.PlayOneGame();
+                            }
                             Console.WriteLine("Iterations per second: {0}",1000 * sharedLoopCounter / (stopwatch.ElapsedMilliseconds+1));
                             Console.WriteLine();
                         }

@@ -291,7 +291,7 @@ namespace Poker_MCCFRM
                     tableCardsNew.Add(Global.Deck.Value.Draw(Global.nofPlayers * 2 + 4));
                     break;
             }
-            if (GetNumberOfPlayersThatNeedToAct() >= 2 && bettingRound < 3)
+            if (GetNumberOfPlayersThatNeedToAct() >= 2 && bettingRound < 4)
             {
                 // there is someone left that plays
                 children.Add(new PlayState(newBettingRound, playerToMove, lastToMoveTemp, minRaiseTemp, playersInHand,

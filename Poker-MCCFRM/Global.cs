@@ -8,7 +8,7 @@ namespace Poker_MCCFRM
     public static class Global
     {
         // adjust threads to cpu
-        public const int NOF_THREADS = 24;
+        public const int NOF_THREADS = 12;
 
         // currently each round has the same raise values available
         // the values are multiples of the current pot
@@ -24,11 +24,11 @@ namespace Poker_MCCFRM
 
         // information abstraction parameters, currently this would be a
         // 169 - 200 - 200 - 200 abstraction, where the river is bucketed using OCHS and the turn and flop using EMD
-        public const int nofRiverBuckets = 500;
-        public const int nofTurnBuckets = 500;
-        public const int nofFlopBuckets = 500;
+        public const int nofRiverBuckets = 1000;
+        public const int nofTurnBuckets = 1000;
+        public const int nofFlopBuckets = 1000;
         // 100k or even 1 million shouldn't take too much time compared to the rest of the information abstraction
-        public const int nofMCSimsPerPreflopHand = 500000;
+        public const int nofMCSimsPerPreflopHand = 5000;
         // for the river, determines the river histogram size (in theory could be up to 169 but will be very slow) default 8
         public const int nofOpponentClusters = 16;
         public const int flopHistogramSize = 50;

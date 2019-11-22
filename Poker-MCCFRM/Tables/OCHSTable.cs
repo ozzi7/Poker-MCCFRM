@@ -159,7 +159,7 @@ namespace Poker_MCCFRM
         {
             // k-means clustering
             Kmeans kmeans = new Kmeans();
-            preflopIndices = kmeans.ClusterEMD(histogramsPreflop, Global.nofOpponentClusters, 100, "PreflopClusterTemp.txt");
+            preflopIndices = kmeans.ClusterEMD(histogramsPreflop, Global.nofOpponentClusters, 100, "OCHSOpponentCluster_temp.txt");
 
             Console.WriteLine("Created the following cluster for starting hands: ");
             List<Hand> startingHands = Utilities.GetStartingHandChart();
@@ -175,6 +175,7 @@ namespace Poker_MCCFRM
                 {
                     Console.ForegroundColor = (ConsoleColor)preflopIndices[index];
                     Console.Write("X  ");
+                    Console.ResetColor();
                 }
                 else
                 {
@@ -183,7 +184,7 @@ namespace Poker_MCCFRM
                 if (i % 13 == 12)
                     Console.WriteLine();
             }
-            Console.ResetColor();
+
             Console.WriteLine();
         }
         private static void ClusterRiver()
@@ -309,7 +310,7 @@ namespace Poker_MCCFRM
             if (histogramsRiver != null)
             {
                 Console.WriteLine("Saving river histograms to file {0}", filenameRiverHistograms);
-                using var fileStream = File.Create("OCHSRiverHistograms_new.txt");
+                using var fileStream = File.Create(filenameRiverHistograms);
                 BinaryFormatter bf = new BinaryFormatter();
                 bf.Serialize(fileStream, histogramsRiver);
             }
