@@ -124,7 +124,7 @@ namespace Poker_MCCFRM
                         Array.Copy(bestCenters, recordCenters, recordCenters.Length);
                     }
                     Console.WriteLine("Current average distance: {0} Improvement: {1}, {2}%", totalDistance, diff,
-                        Math.Round(100.0 * (1.0 - totalDistance / lastDistance), 2));
+                        100.0 * (1.0 - totalDistance / lastDistance));
 
                     if (totalDistance > lastDistance * (1.0 - saveToFileMinImprovement) && totalDistance < lastDistance)
                     {
@@ -170,12 +170,16 @@ namespace Poker_MCCFRM
             {
                 bestCenters = new int[data.Count()];
                 float[,] centers = FindStartingCentersL2(data, k);
+                float[,] centerCenterDistances = new float[k,k];
 
                 Console.WriteLine("K-means++ starting clustering...");
                 double lastDistance = double.MaxValue;
                 bool distanceChanged = true;
                 while (distanceChanged)
                 {
+                    // calculate cluster-cluster distances to use triangle inequality
+                    CalculateClusterDistancesL2(centerCenterDistances, centers);
+
                     // find closest cluster for each element
                     long sharedLoopCounter = 0;
                     double totalDistance = 0;
@@ -190,14 +194,17 @@ namespace Poker_MCCFRM
                                     j < Util.GetWorkItemsIndices(data.Count(), Global.NOF_THREADS, i).Item2; ++j)
                              { // go through all data
                                  double distance = double.MaxValue;
-                                 int bestIndex = 0;
+                                 int bestIndex = -1;
                                  for (int m = 0; m < k; ++m) // go through centers
                                  {
-                                     double tempDistance = GetL2DistanceSquared(data, centers, j, m);
-                                     if (tempDistance < distance)
+                                     if (bestIndex == -1 || centerCenterDistances[bestCenters[j], m] < 2 * distance)
                                      {
-                                         distance = tempDistance;
-                                         bestIndex = m;
+                                         double tempDistance = GetL2DistanceSquared(data, centers, j, m);
+                                         if (tempDistance < distance)
+                                         {
+                                             distance = tempDistance;
+                                             bestIndex = m;
+                                         }
                                      }
                                  }
                                  bestCenters[j] = bestIndex;
@@ -252,7 +259,7 @@ namespace Poker_MCCFRM
                         Array.Copy(bestCenters, recordCenters, recordCenters.Length);
                     }
                     Console.WriteLine("Current average distance: {0} Improvement: {1}, {2}%", totalDistance, diff,
-                        Math.Round(100.0*(1.0-totalDistance/lastDistance), 2));
+                        100.0*(1.0-totalDistance/lastDistance));
 
                     if (totalDistance > lastDistance * (1.0-saveToFileMinImprovement) && totalDistance < lastDistance)
                     {
@@ -277,30 +284,88 @@ namespace Poker_MCCFRM
             // print starting hand chart
             return recordCenters;
         }
+        private void CalculateClusterDistancesL2(float[,] distances, float[,] clusterCenters)
+        {
+            Parallel.For(0, Global.NOF_THREADS,
+            i =>
+            {
+                for (int j = Util.GetWorkItemsIndices(clusterCenters.GetLength(0), Global.NOF_THREADS, i).Item1;
+                    j < Util.GetWorkItemsIndices(clusterCenters.GetLength(0), Global.NOF_THREADS, i).Item2; ++j)
+                {
+                    for (int m = 0; m < j; ++m) // go through centers
+                    {
+                        distances[j, m] = GetL2DistanceSquared(clusterCenters, clusterCenters, j, m);
+                    }
+                }
+            });
+            for (int j = 0; j < clusterCenters.GetLength(0); ++j)
+            {
+                for (int m = 0; m < j; ++m) // go through centers
+                {
+                    distances[m, j] = distances[j,m];
+                }
+            }
+        }
+        private void CalculateClusterDistancesEMD(float[][] distances, float[][] clusterCenters)
+        {
+        }
+        /// <summary>
+        /// Returns a sample of the data
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="nofSamples"></param>
+        /// <returns></returns>
+        private float[][] GetUniqueRandomNumbers(float[][] data, int nofSamples)
+        {
+            float[][] tempData = new float[nofSamples][];
+            for (int i = 0; i < nofSamples; ++i)
+            {
+                tempData[i] = new float[data[0].Count()];
+            }
+
+            HashSet<int> numbers = new HashSet<int>();
+
+            int numbersLeft = nofSamples;
+            int destinationIndex = 0;
+            while (numbersLeft > 0)
+            {
+                int rand = RandomGen.Next(0, data.Count());
+                if(!numbers.Contains(rand))
+                {
+                    numbers.Add(rand);
+                    numbersLeft--;
+                    CopyArray(data, tempData, rand, destinationIndex);
+                    destinationIndex++;
+                }
+            }
+            return tempData;
+        }
         private float[,] FindStartingCentersL2(float[][] data, int k)
         {
-            // select random centers
             Console.WriteLine("K-means++ finding good starting centers...");
+            
+            // first get some samples of all data to speed up the algorithm
+            int maxSamples = k * 100;
+            float[][] dataTemp = GetUniqueRandomNumbers(data, maxSamples);
+           
+            float[,] centers = new float[k, dataTemp[0].Count()];
 
-            float[,] centers = new float[k, data.GetLength(1)];
-
-            // first position random
+            // first cluster center is random
             List<int> centerIndices = new List<int>();
             int index = -1;
             using (var progress = new ProgressBar())
             {
                 progress.Report((double)(1) / k, 1);
-                double[] distancesToBestCenter = Enumerable.Repeat(double.MaxValue, data.GetLength(0)).ToArray();
 
                 for (int c = 0; c < k; ++c) // get a new cluster center one by one
                 {
-                    double[] distancesToBestCenter = Enumerable.Repeat(double.MaxValue, data.Count()).ToArray();
+                    double[] distancesToBestCenter = Enumerable.Repeat(double.MaxValue, dataTemp.Count()).ToArray();
 
                     if (c == 0)
                     {
-                        index = RandomGen.Next(0, data.GetLength(0));
+                        index = RandomGen.Next(0, dataTemp.Count());
                         centerIndices.Add(index);
-                        CopyArray(data, centers, index, c);
+                        CopyArray(dataTemp, centers, index, c);
 
                         continue;
                     }
@@ -309,12 +374,12 @@ namespace Poker_MCCFRM
                         Parallel.For(0, Global.NOF_THREADS,
                         i =>
                         {
-                            for (int j = Util.GetWorkItemsIndices(data.GetLength(0), Global.NOF_THREADS, i).Item1;
-                                                        j < Util.GetWorkItemsIndices(data.GetLength(0), Global.NOF_THREADS, i).Item2; ++j)
-                            { // go through all data
+                            for (int j = Util.GetWorkItemsIndices(dataTemp.Count(), Global.NOF_THREADS, i).Item1;
+                                                        j < Util.GetWorkItemsIndices(dataTemp.Count(), Global.NOF_THREADS, i).Item2; ++j)
+                            { // go through all dataTemp
                                 for (int m = 0; m < c; ++m) // go through centers
                                 {
-                                    double tempDistance = GetL2DistanceSquared(data, centers, j, m);
+                                    double tempDistance = GetL2DistanceSquared(dataTemp, centers, j, m);
                                     if (tempDistance < distancesToBestCenter[j])
                                     {
                                         distancesToBestCenter[j] = tempDistance;
@@ -332,7 +397,7 @@ namespace Poker_MCCFRM
                         {
                             centerIndexSample = Util.SampleDistribution(distancesToBestCenter);
                         }
-                        CopyArray(data, centers, centerIndexSample, c);
+                        CopyArray(dataTemp, centers, centerIndexSample, c);
                         centerIndices.Add(centerIndexSample);
                     }
                     progress.Report((double)(c + 1) / k, c + 1);
@@ -407,12 +472,20 @@ namespace Poker_MCCFRM
                 a[i] = a[i] * a[i];
             }
         }
-        private void CopyArray(float[][] data, float[,] centers, int indexData, int indexCenter)
+        private void CopyArray(float[][] dataSource, float[,] dataDestination, int indexSource, int indexDestination)
         {
             // probably should use buffer.blockcopy (todo)
-            for (int i = 0; i < data[0].Count(); ++i)
+            for (int i = 0; i < dataSource[0].Count(); ++i)
             {
-                centers[indexCenter, i] = data[indexData][i];
+                dataDestination[indexDestination, i] = dataSource[indexSource][i];
+            }
+        }
+        private void CopyArray(float[][] dataSource, float[][] dataDestination, int indexSource, int indexDestination)
+        {
+            // probably should use buffer.blockcopy (todo)
+            for (int i = 0; i < dataSource[0].Count(); ++i)
+            {
+                dataDestination[indexDestination][i] = dataSource[indexSource][i];
             }
         }
         private float GetEarthMoverDistance(float[][] data, float[,] centers, int index1, int index2)
@@ -429,17 +502,33 @@ namespace Poker_MCCFRM
         {     
             double totalDistance = 0;
             Vector4 v1, v2;
-            for (int i = 0; i < data.GetLength(1) - 4; i +=4)
+            for (int i = 0; i < data[0].Count() - 4; i +=4)
             {
                 v1 = new Vector4(data[index1][i], data[index1][i+1], data[index1][i+2], data[index1][i+3]);
                 v2 = new Vector4(centers[index2, i], centers[index2, i+1], centers[index2, i+2], centers[index2, i+3]);
                 totalDistance += (v1-v2).LengthSquared();
             }
-            for (int i = data.GetLength(1) - data.GetLength(1) % 4; i < data.GetLength(1); i++) // if the histogram is not a multiple of 4
+            for (int i = data[0].Count() - data[0].Count() % 4; i < data[0].Count(); i++) // if the histogram is not a multiple of 4
             {
                 totalDistance += (data[index1][i] - centers[index2, i]) * (double)(data[index1][i] - centers[index2, i]);
             }
             return totalDistance;
+        }
+        private float GetL2DistanceSquared(float[,] data, float[,] centers, int index1, int index2)
+        {
+            double totalDistance = 0;
+            Vector4 v1, v2;
+            for (int i = 0; i < data.GetLength(1) - 4; i += 4)
+            {
+                v1 = new Vector4(data[index1,i], data[index1,i + 1], data[index1,i + 2], data[index1,i + 3]);
+                v2 = new Vector4(centers[index2, i], centers[index2, i + 1], centers[index2, i + 2], centers[index2, i + 3]);
+                totalDistance += (v1 - v2).LengthSquared();
+            }
+            for (int i = data.GetLength(1) - data.GetLength(1) % 4; i < data.GetLength(1); i++) // if the histogram is not a multiple of 4
+            {
+                totalDistance += (data[index1,i] - centers[index2, i]) * (double)(data[index1,i] - centers[index2, i]);
+            }
+            return (float)totalDistance;
         }
         public static double AddDouble(ref double location1, double value)
         {

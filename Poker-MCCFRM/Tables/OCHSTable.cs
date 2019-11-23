@@ -309,10 +309,21 @@ namespace Poker_MCCFRM
             }
             if (histogramsRiver != null)
             {
-                Console.WriteLine("Saving river histograms to file {0}", filenameRiverHistograms);
-                using var fileStream = File.Create(filenameRiverHistograms);
-                BinaryFormatter bf = new BinaryFormatter();
-                bf.Serialize(fileStream, histogramsRiver);
+                Console.WriteLine("Saving river histograms from file {0}", filenameRiverHistograms);
+                BinaryWriter bin = new BinaryWriter(File.Open(filenameRiverHistograms, FileMode.Create));
+                int dim1 = histogramsRiver.Length;
+                int dim2 = histogramsRiver[0].Length;
+
+                bin.Write(dim1);
+                bin.Write(dim2);
+                for (int i = 0; i < dim1; ++i)
+                {
+                    for (int j = 0; j < dim2; ++j)
+                    {
+                        bin.Write(histogramsRiver[i][j]);
+                    }
+                }
+                bin.Close();
             }
             if (riverIndices != null)
             {
@@ -337,11 +348,23 @@ namespace Poker_MCCFRM
                 if (File.Exists(filenameRiverHistograms))
                 {
                     Console.WriteLine("Loading river histograms from file {0}", filenameRiverHistograms);
-                    using var fileStream = File.OpenRead(filenameRiverHistograms);
-                    var binForm = new BinaryFormatter();
-                    histogramsRiver = (float[][])binForm.Deserialize(fileStream);
-                }
+                    BinaryReader binR = new BinaryReader(File.OpenRead(filenameRiverHistograms));
+                    int dim1 = binR.ReadInt32();
+                    int dim2 = binR.ReadInt32();
+                    histogramsRiver = new float[dim1][];
+                    for (int i = 0; i < dim1; ++i)
+                    {
+                        histogramsRiver[i] = new float[dim2];
+                    }
 
+                    for (int i = 0; i < dim1; ++i)
+                    {
+                        for (int j = 0; j < dim2; ++j)
+                        {
+                            histogramsRiver[i][j] = binR.ReadSingle();
+                        }
+                    }
+                }
                 if (File.Exists(filenameOppClusters))
                 {
                     Console.WriteLine("Loading flop opponent clusters from file {0}", filenameOppClusters);
