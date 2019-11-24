@@ -155,7 +155,7 @@ namespace Poker_MCCFRM
         /// <param name="data"></param>
         /// <param name="k"></param>
         /// <returns></returns>
-        public int[] ClusterL2(float[][] data, int k, int nofRuns)
+        public int[] ClusterL2(float[][] data, int k, int nofRuns, int[] _bestCenters = null)
         {
             Console.WriteLine("K-means++ clustering (L2) {0} elements into {1} clusters with {2} runs...", data.Count(), k, nofRuns);
 
@@ -164,68 +164,32 @@ namespace Poker_MCCFRM
             double saveToFileMinImprovement = 0.05;
             int[] bestCenters = new int[data.Count()];
             int[] recordCenters = new int[data.Count()]; // we return indices only because the centers are discarded
+
+            // load previous indices if passed
+            bool skipInit = false;
+            if (_bestCenters != null)
+            {
+                skipInit = true;
+                Array.Copy(_bestCenters, bestCenters, _bestCenters.Length);
+                Array.Copy(_bestCenters, recordCenters, _bestCenters.Length);
+            }
             double recordDistance = double.MaxValue;
 
             for (int run = 0; run < nofRuns; ++run)
             {
-                bestCenters = new int[data.Count()];
-                float[,] centers = FindStartingCentersL2(data, k);
-                float[,] centerCenterDistances = new float[k,k];
+                float[,] centers = new float[k, data[0].Count()];
 
                 Console.WriteLine("K-means++ starting clustering...");
                 double lastDistance = double.MaxValue;
                 bool distanceChanged = true;
-                while (distanceChanged)
+
+                if (!skipInit)
                 {
-                    // calculate cluster-cluster distances to use triangle inequality
-                    CalculateClusterDistancesL2(centerCenterDistances, centers);
-
-                    // find closest cluster for each element
-                    long sharedLoopCounter = 0;
-                    double totalDistance = 0;
-                    using (var progress = new ProgressBar())
-                    {
-                        Parallel.For(0, Global.NOF_THREADS,
-                         i =>
-                         {
-                             double threadDistance = 0;
-                             long iter = 0;
-                             for (int j = Util.GetWorkItemsIndices(data.Count(), Global.NOF_THREADS, i).Item1;
-                                    j < Util.GetWorkItemsIndices(data.Count(), Global.NOF_THREADS, i).Item2; ++j)
-                             { // go through all data
-                                 double distance = double.MaxValue;
-                                 int bestIndex = -1;
-                                 for (int m = 0; m < k; ++m) // go through centers
-                                 {
-                                     if (bestIndex == -1 || centerCenterDistances[bestCenters[j], m] < 2 * distance)
-                                     {
-                                         double tempDistance = GetL2DistanceSquared(data, centers, j, m);
-                                         if (tempDistance < distance)
-                                         {
-                                             distance = tempDistance;
-                                             bestIndex = m;
-                                         }
-                                     }
-                                 }
-                                 bestCenters[j] = bestIndex;
-                                 threadDistance += Math.Sqrt(distance);
-
-                                 iter++;
-                                 if(iter % 10000 == 0) 
-                                 { 
-                                     Interlocked.Add(ref sharedLoopCounter, 10000);
-                                     AddDouble(ref totalDistance, threadDistance);
-                                     threadDistance = 0;
-                                     progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.Count(), sharedLoopCounter);
-                                 }
-                             }
-                             Interlocked.Add(ref sharedLoopCounter, iter % 10000);
-                             progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.Count(), sharedLoopCounter);
-
-                             AddDouble(ref totalDistance, threadDistance);
-                         });
-                    }
-
+                    bestCenters = new int[data.Count()];
+                    centers = FindStartingCentersL2(data, k);
+                }
+                else
+                {
                     // find new cluster centers // todo: it isnt theoretically sound to take the mean when using EMD distance metric
                     centers = new float[k, data[0].Count()];
                     int[] occurrences = new int[k];
@@ -247,7 +211,85 @@ namespace Poker_MCCFRM
                                 break;
                         }
                     }
-                    totalDistance /= data.Count();
+                    skipInit = false;
+                }
+                float[,] centerCenterDistances = new float[k,k];
+                while (distanceChanged)
+                {
+                    // calculate cluster-cluster distances to use triangle inequality
+                    CalculateClusterDistancesL2(centerCenterDistances, centers);
+
+                    // find closest cluster for each element
+                    long sharedLoopCounter = 0;
+                    double totalDistance = 0;
+                    using (var progress = new ProgressBar())
+                    {
+                        Parallel.For(0, Global.NOF_THREADS,
+                         i =>
+                         {
+                             double threadDistance = 0;
+                             long iter = 0;
+                             for (int j = Util.GetWorkItemsIndices(data.Length, Global.NOF_THREADS, i).Item1;
+                                    j < Util.GetWorkItemsIndices(data.Length, Global.NOF_THREADS, i).Item2; ++j)
+                             { // go through all data
+                                 // assume previous cluster was good, this is better for the triangle inequality
+                                 double distance = GetL2DistanceSquared(data, centers, j, bestCenters[j]); 
+                                 int bestIndex = bestCenters[j];
+                                 iter++;
+                                 for (int m = 0; m < k; m++) // go through centers
+                                 {
+                                     if (centerCenterDistances[bestCenters[j], m] < 2 * distance && bestIndex != m)
+                                     {
+                                         double tempDistance = GetL2DistanceSquared(data, centers, j, m);
+                                         if (tempDistance < distance)
+                                         {
+                                             distance = tempDistance;
+                                             bestIndex = m;
+                                         }
+                                         iter++;
+                                     }
+                                 }
+                                 bestCenters[j] = bestIndex;
+                                 threadDistance += Math.Sqrt(distance);
+
+                                 //iter++;
+                                 if(iter % 2000000 == 0) 
+                                 { 
+                                     Interlocked.Add(ref sharedLoopCounter, 2000000);
+                                     AddDouble(ref totalDistance, threadDistance);
+                                     threadDistance = 0;
+                                     progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.Length, sharedLoopCounter);
+                                 }
+                             }
+                             Interlocked.Add(ref sharedLoopCounter, iter % 2000000);
+                             progress.Report((double)Interlocked.Read(ref sharedLoopCounter) / data.Length, sharedLoopCounter);
+
+                             AddDouble(ref totalDistance, threadDistance);
+                         });
+                    }
+
+                    // find new cluster centers // todo: it isnt theoretically sound to take the mean when using EMD distance metric
+                    centers = new float[k, data[0].Length];
+                    int[] occurrences = new int[k];
+                    for (int j = 0; j < data.Length; j++)
+                    {
+                        for (int m = 0; m < data[0].Length; ++m)
+                        {
+                            centers[bestCenters[j], m] += data[j][m];
+                        }
+                        occurrences[bestCenters[j]]++;
+                    }
+                    for (int n = 0; n < k; ++n)
+                    {
+                        for (int m = 0; m < data[0].Length; ++m)
+                        {
+                            if (occurrences[n] != 0)
+                                centers[n, m] /= occurrences[n];
+                            else
+                                break;
+                        }
+                    }
+                    totalDistance /= data.Length;
                     if (totalDistance == lastDistance)
                     {
                         distanceChanged = false;
@@ -266,10 +308,8 @@ namespace Poker_MCCFRM
                         Console.WriteLine("Less than {0}% change in average distance, saving intermediate table to file...",
                            saveToFileMinImprovement*100.0);
 
-                        Console.WriteLine("Saving river cluster index to file riverCluster_temp.txt");
-                        using var fileStream = File.Create("riverCluster_temp.txt");
-                        BinaryFormatter bf = new BinaryFormatter();
-                        bf.Serialize(fileStream, recordCenters);
+                        Console.WriteLine("Saving river cluster index to file...");
+                        FileHandler.SaveToFile(recordCenters, "OCHSRiverClusters_temp.txt");
 
                         saveToFileMinImprovement *= 0.5f;
                     }
@@ -501,14 +541,13 @@ namespace Poker_MCCFRM
         private double GetL2DistanceSquared(float[][] data, float[,] centers, int index1, int index2)
         {     
             double totalDistance = 0;
-            Vector4 v1, v2;
-            for (int i = 0; i < data[0].Count() - 4; i +=4)
+            for (int i = 0; i < data[0].Length - 4; i +=4)
             {
-                v1 = new Vector4(data[index1][i], data[index1][i+1], data[index1][i+2], data[index1][i+3]);
-                v2 = new Vector4(centers[index2, i], centers[index2, i+1], centers[index2, i+2], centers[index2, i+3]);
+                Vector4 v1 = new Vector4(data[index1][i], data[index1][i+1], data[index1][i+2], data[index1][i+3]);
+                Vector4 v2 = new Vector4(centers[index2, i], centers[index2, i+1], centers[index2, i+2], centers[index2, i+3]);
                 totalDistance += (v1-v2).LengthSquared();
             }
-            for (int i = data[0].Count() - data[0].Count() % 4; i < data[0].Count(); i++) // if the histogram is not a multiple of 4
+            for (int i = data[0].Length - data[0].Length % 4; i < data[0].Length; i++) // if the histogram is not a multiple of 4
             {
                 totalDistance += (data[index1][i] - centers[index2, i]) * (double)(data[index1][i] - centers[index2, i]);
             }

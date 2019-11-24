@@ -192,7 +192,8 @@ namespace Poker_MCCFRM
             // k-means clustering
             DateTime start = DateTime.UtcNow;
             Kmeans kmeans = new Kmeans();
-            riverIndices = kmeans.ClusterL2(histogramsRiver, Global.nofRiverBuckets, 1);
+            int[] indices = FileHandler.LoadFromFileIndex("OCHSRiverClusters_temp.txt");
+            riverIndices = kmeans.ClusterL2(histogramsRiver, Global.nofRiverBuckets, 4, indices);
 
             Console.WriteLine("Created the following clusters for the River: ");
 
