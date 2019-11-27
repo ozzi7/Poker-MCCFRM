@@ -80,7 +80,7 @@ namespace Poker_MCCFRM
                 }
                 return data;
             }
-            catch
+            catch (Exception e)
             {
                 return null;
             }

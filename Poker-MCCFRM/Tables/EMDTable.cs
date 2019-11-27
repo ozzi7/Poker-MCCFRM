@@ -38,8 +38,11 @@ namespace Poker_MCCFRM
             }
             else if (flopIndices == null)
             {
-                GenerateFlopHistograms();
-                SaveToFile();
+                if (histogramsFlop == null)
+                {
+                    GenerateFlopHistograms();
+                    SaveToFile();
+                }
                 ClusterFlop();
                 SaveToFile();
             }
@@ -236,7 +239,7 @@ namespace Poker_MCCFRM
 
                                 histogramsFlop[i][Math.Min(Global.flopHistogramSize - 1,
                                     (int)(Global.flopHistogramSize * (handstrengthFlop * (1 - NPotFlop) + (1 - handstrengthFlop) * PpotFlop)))] += 1;
-
+                                //Console.WriteLine("{0}, {1}, {2}, {3}", handstrengthFlop, NPotFlop, PpotFlop, (handstrengthFlop * (1 - NPotFlop) + (1 - handstrengthFlop) * PpotFlop));
                                 deadCardMask &= ~(1L << cardRiver);
                             }
 
@@ -248,21 +251,22 @@ namespace Poker_MCCFRM
                 });
             }
             TimeSpan elapsed = DateTime.UtcNow - start;
-            Console.WriteLine("Generating Turn histograms completed in {0}d {1}h {2}m {3}s", elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
+            Console.WriteLine("Generating Flop histograms completed in {0}d {1}h {2}m {3}s", elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
         }
         private static void ClusterTurn()
         {
             // k-means clustering
             DateTime start = DateTime.UtcNow;
             Kmeans kmeans = new Kmeans();
-            turnIndices = kmeans.ClusterEMD(histogramsTurn, Global.nofTurnBuckets, 1, "TurnClusterTemp.txt");
+            int[] indices = FileHandler.LoadFromFileIndex("EMDTableTurn_temp.txt");
+            turnIndices = kmeans.ClusterEMD(histogramsTurn, Global.nofTurnBuckets, 1, indices);
 
             TimeSpan elapsed = DateTime.UtcNow - start;
             Console.WriteLine("Turn clustering completed in {0}d {1}h {2}m {3}s", elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
 
             Console.WriteLine("Created the following clusters for the Turn (extract of one cluster): ");
             int nofEntriesToDisplay = 20;
-            for (int i = 0; i < Global.indexer_2_4.roundSize[1] && nofEntriesToDisplay > 0; ++i, nofEntriesToDisplay--)
+            for (int i = 0; i < Global.indexer_2_4.roundSize[1] && nofEntriesToDisplay > 0; ++i)
             {
                 if (turnIndices[i] == 0)
                 {
@@ -273,6 +277,7 @@ namespace Poker_MCCFRM
                     hand.Cards = new List<Card>(){new Card(cards[0]),new Card(cards[1]), new Card(cards[2]), new Card(cards[3]),
                             new Card(cards[4]), new Card(cards[5])};
                     hand.PrintColoredCards("\n");
+                    nofEntriesToDisplay--;
                 }
             }
             if(nofEntriesToDisplay == 0)
@@ -283,14 +288,15 @@ namespace Poker_MCCFRM
             // k-means clustering
             DateTime start = DateTime.UtcNow;
             Kmeans kmeans = new Kmeans();
-            flopIndices = kmeans.ClusterEMD(histogramsFlop, Global.nofFlopBuckets, 1, "FlopClusterTemp.txt");
+            int[] indices = FileHandler.LoadFromFileIndex("EMDTableFlop_temp.txt");
+            flopIndices = kmeans.ClusterEMD(histogramsFlop, Global.nofFlopBuckets, 1, indices);
 
             TimeSpan elapsed = DateTime.UtcNow - start;
             Console.WriteLine("Flop clustering completed in {0}d {1}h {2}m {3}s", elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
 
             Console.WriteLine("Created the following clusters for the Flop (extract of one cluster): ");
             int nofEntriesToDisplay = 20;
-            for (int i = 0; i < Global.indexer_2_3.roundSize[1] && nofEntriesToDisplay > 0; ++i, nofEntriesToDisplay--)
+            for (int i = 0; i < Global.indexer_2_3.roundSize[1] && nofEntriesToDisplay > 0; ++i)
             {
                 if (turnIndices[i] == 0)
                 {
@@ -301,6 +307,7 @@ namespace Poker_MCCFRM
                     hand.Cards = new List<Card>(){new Card(cards[0]),new Card(cards[1]), new Card(cards[2]), new Card(cards[3]),
                             new Card(cards[4])};
                     hand.PrintColoredCards("\n");
+                    nofEntriesToDisplay--;
                 }
             }
             if (nofEntriesToDisplay == 0)
@@ -311,30 +318,22 @@ namespace Poker_MCCFRM
             if (flopIndices != null)
             {
                 Console.WriteLine("Saving flop cluster index to file {0}", filenameEMDFlopTable);
-                using var fileStream = File.Create(filenameEMDFlopTable);
-                BinaryFormatter bf = new BinaryFormatter();
-                bf.Serialize(fileStream, flopIndices);
+                FileHandler.SaveToFile(flopIndices, filenameEMDFlopTable);
             }
             if (turnIndices != null)
             {
                 Console.WriteLine("Saving turn cluster index to file {0}", filenameEMDTurnTable);
-                using var fileStream = File.Create(filenameEMDTurnTable);
-                BinaryFormatter bf = new BinaryFormatter();
-                bf.Serialize(fileStream, turnIndices);
+                FileHandler.SaveToFile(turnIndices, filenameEMDTurnTable);
             }
             if (histogramsFlop != null)
             {
                 Console.WriteLine("Saving flop histograms to file {0}", filenameEMDFlopHistogram);
-                using var fileStream = File.Create(filenameEMDFlopHistogram);
-                BinaryFormatter bf = new BinaryFormatter();
-                bf.Serialize(fileStream, filenameEMDFlopHistogram);
+                FileHandler.SaveToFile(histogramsFlop, filenameEMDFlopHistogram);
             }
             if (histogramsTurn != null)
             {
                 Console.WriteLine("Saving turn histograms to file {0}", filenameEMDTurnHistogram);
-                using var fileStream = File.Create(filenameEMDTurnHistogram);
-                BinaryFormatter bf = new BinaryFormatter();
-                bf.Serialize(fileStream, histogramsTurn);
+                FileHandler.SaveToFile(histogramsTurn, filenameEMDTurnHistogram);
             }
         }
         private static void LoadFromFile()
@@ -342,30 +341,22 @@ namespace Poker_MCCFRM
             if (File.Exists(filenameEMDTurnTable))
             {
                 Console.WriteLine("Loading turn cluster index from file {0}", filenameEMDTurnTable);
-                using var fileStream = File.OpenRead(filenameEMDTurnTable);
-                var binForm = new BinaryFormatter();
-                turnIndices = (int[])binForm.Deserialize(fileStream);
+                turnIndices = FileHandler.LoadFromFileIndex(filenameEMDTurnTable);
             }
             if (File.Exists(filenameEMDFlopTable))
             {
                 Console.WriteLine("Loading flop cluster index from file {0}", filenameEMDFlopTable);
-                using var fileStream = File.OpenRead(filenameEMDFlopTable);
-                var binForm = new BinaryFormatter();
-                flopIndices = (int[])binForm.Deserialize(fileStream);
+                flopIndices = FileHandler.LoadFromFileIndex(filenameEMDFlopTable);
             }
             if (flopIndices == null && File.Exists(filenameEMDFlopHistogram))
             {
-                Console.WriteLine("Loading turn histograms from file {0}", filenameEMDFlopHistogram);
-                using var fileStream = File.OpenRead(filenameEMDFlopHistogram);
-                var binForm = new BinaryFormatter();
-                histogramsFlop = (float[][])binForm.Deserialize(fileStream);
+                Console.WriteLine("Loading flop histograms from file {0}", filenameEMDFlopHistogram);
+                histogramsFlop = FileHandler.LoadFromFile(filenameEMDFlopHistogram);
             }
             if (turnIndices == null && File.Exists(filenameEMDTurnHistogram))
             {
-                Console.WriteLine("Loading flop histograms from file {0}", filenameEMDTurnHistogram);
-                using var fileStream = File.OpenRead(filenameEMDTurnHistogram);
-                var binForm = new BinaryFormatter();
-                histogramsTurn = (float[][])binForm.Deserialize(fileStream);
+                Console.WriteLine("Loading turn histograms from file {0}", filenameEMDTurnHistogram);
+                histogramsTurn = FileHandler.LoadFromFile(filenameEMDTurnHistogram);
             }
         }
     }

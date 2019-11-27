@@ -159,7 +159,7 @@ namespace Poker_MCCFRM
         {
             // k-means clustering
             Kmeans kmeans = new Kmeans();
-            preflopIndices = kmeans.ClusterEMD(histogramsPreflop, Global.nofOpponentClusters, 100, "OCHSOpponentCluster_temp.txt");
+            preflopIndices = kmeans.ClusterEMD(histogramsPreflop, Global.nofOpponentClusters, 100, null);
 
             Console.WriteLine("Created the following cluster for starting hands: ");
             List<Hand> startingHands = Utilities.GetStartingHandChart();
@@ -193,7 +193,7 @@ namespace Poker_MCCFRM
             DateTime start = DateTime.UtcNow;
             Kmeans kmeans = new Kmeans();
             int[] indices = FileHandler.LoadFromFileIndex("OCHSRiverClusters_temp.txt");
-            riverIndices = kmeans.ClusterL2(histogramsRiver, Global.nofRiverBuckets, 4, indices);
+            riverIndices = kmeans.ClusterL2(histogramsRiver, Global.nofRiverBuckets, 1, indices);
 
             Console.WriteLine("Created the following clusters for the River: ");
 
@@ -338,11 +338,7 @@ namespace Poker_MCCFRM
         {
             if (File.Exists(filenameRiverClusters))
             {
-                Console.WriteLine("Loading river cluster from file {0}", filenameRiverClusters);
-
-                using var fileStream2 = File.OpenRead(filenameRiverClusters);
-                var binForm = new BinaryFormatter();
-                riverIndices = (int[])binForm.Deserialize(fileStream2);
+                riverIndices = FileHandler.LoadFromFileIndex(filenameRiverClusters);
             }
             else
             {

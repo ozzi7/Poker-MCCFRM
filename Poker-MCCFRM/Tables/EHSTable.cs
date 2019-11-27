@@ -100,7 +100,7 @@ namespace Poker_MCCFRM
                         }
                         deadCardMask |= (1L << card2Opponent);
 
-                        for (int cardTurn = 0; cardTurn < 52; cardTurn++)
+                        for (int cardTurn = 0; cardTurn < 51; cardTurn++)
                         {
                             if (((1L << cardTurn) & deadCardMask) != 0)
                             {
@@ -260,7 +260,7 @@ namespace Poker_MCCFRM
                      Global.indexer_2_3.unindex(Global.indexer_2_3.rounds - 1, i, cards);
                      long deadCardMask = (1L << cards[0]) + (1L << cards[1]) + (1L << cards[2]) + (1L << cards[3]) + (1L << cards[4]);
 
-                     for (int cardTurn = 0; cardTurn < 52; cardTurn++)
+                     for (int cardTurn = 0; cardTurn < 51; cardTurn++)
                      {
                          if (((1L << cardTurn) & deadCardMask) != 0)
                          {
