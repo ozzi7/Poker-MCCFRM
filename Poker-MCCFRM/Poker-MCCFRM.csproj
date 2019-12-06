@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <PackageReference Include="Combinatorics" Version="1.1.0.19" />
+    <PackageReference Include="Microsoft.FASTER" Version="2019.11.18.1" />
   </ItemGroup>
 
 </Project>

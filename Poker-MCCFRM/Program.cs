@@ -16,43 +16,8 @@ namespace Poker_MCCFRM
         {
             CreateIndexers();
             Global.handEvaluator = new Evaluator();
-
-            //temp
-            //LoadFromFile();
-            //CalculateInformationAbstraction();
-            //Trainer t = new Trainer(0);
-            //while(true)
-            //    t.PlayOneGame();
-
             CalculateInformationAbstraction();
             Train();
-        }
-        private static void handEvaluatorTest(HandIndexer indexer)
-        {
-            int totalCards = 0;
-            for (int i = 0; i < indexer.rounds; ++i)
-                totalCards += indexer.cardsPerRound[i];
-
-            int[] cards = new int[totalCards];
-            int[] cards2 = new int[totalCards];
-
-            for (long n = 0; n < 10000000L; ++n)
-            {
-                long deadCardMask = 0;
-                for (int i = 0; i < totalCards; ++i)
-                {
-                    do
-                    {
-                        cards[i] = (int)(RandomGen.NextDouble() * HandIndexer.CARDS);
-                    } while (((1L << (int)cards[i]) & deadCardMask) != 0);
-                    deadCardMask |= (1L << (int)cards[i]);
-                }
-                long index = indexer.indexLast(cards);
-
-                indexer.unindex(indexer.rounds - 1, index, cards2);
-                long index2 = indexer.indexLast(cards2);
-                Debug.Assert(index2 == index);
-            }
         }
 
         private static void CreateIndexers()
@@ -100,15 +65,17 @@ namespace Poker_MCCFRM
         {
             Console.WriteLine("Starting Monte Carlo Counterfactual Regret Minimization (MCCFRM)...");
 
-            long StrategyInterval = Math.Max(1,100/Global.NOF_THREADS); ; // bb rounds before updating player strategy (recursive through tree) 10k
-            long PruneThreshold = 50000000/Global.NOF_THREADS; // bb rounds after this time we stop checking all actions, 200 minutes
-            long LCFRThreshold = 10000000/Global.NOF_THREADS; // bb rounds when to stop discounting old regrets, no clue what it should be
-            long DiscountInterval = 1000000/Global.NOF_THREADS; // bb rounds, discount values periodically but not every round, 10 minutes
-            long SaveToDiskInterval = 5000000/Global.NOF_THREADS; // not used currently during trial runs
+            long StrategyInterval = Math.Max(1, 1000 / Global.NOF_THREADS); ; // bb rounds before updating player strategy (recursive through tree) 10k
+            long PruneThreshold = 20000000 / Global.NOF_THREADS; // bb rounds after this time we stop checking all actions, 200 minutes
+            long LCFRThreshold = 20000000 / Global.NOF_THREADS; // bb rounds when to stop discounting old regrets, no clue what it should be
+            long DiscountInterval = 1000000 / Global.NOF_THREADS; // bb rounds, discount values periodically but not every round, 10 minutes
+            long SaveToDiskInterval = 5000000 / Global.NOF_THREADS; // not used currently during trial runs
+            long testGamesInterval = 100000 / Global.NOF_THREADS; // not used currently during trial runs
 
             long sharedLoopCounter = 0;
 
             LoadFromFile();
+            LoadFromFile_d();
 
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -123,16 +90,32 @@ namespace Poker_MCCFRM
                         {
                             Interlocked.Add(ref sharedLoopCounter, 1000);
                         }
-                        if (t % 10000 == 1 && index == 0) // implement progress bar later
+                        if (t % testGamesInterval == 0 && index == 0) // implement progress bar later
                         {
                             Console.WriteLine("Training steps " + sharedLoopCounter);
                             trainer.PrintStartingHandsChart();
                             trainer.PrintStatistics(sharedLoopCounter);
+
+                            Console.WriteLine("Sample games (against self)");
                             for (int z = 0; z < 20; z++)
                             {
                                 trainer.PlayOneGame();
                             }
-                            Console.WriteLine("Iterations per second: {0}",1000 * sharedLoopCounter / (stopwatch.ElapsedMilliseconds+1));
+
+                            Console.WriteLine("Sample games (against baseline)");
+                            float mainScore = 0.0f;
+                            for (int x = 0; x < 10000; x++)
+                            {
+                                if (x < 20)
+                                {
+                                    mainScore += trainer.PlayOneGame_d(x % 2, true);
+                                }
+                                mainScore += trainer.PlayOneGame_d(x % 2, false);
+                            }
+                            WritePlotStatistics((mainScore / 10000) / Global.BB);
+                            Console.WriteLine("BBs per hand: {0}", (mainScore / 10000) / Global.BB);
+
+                            Console.WriteLine("Iterations per second: {0}", 1000 * sharedLoopCounter / (stopwatch.ElapsedMilliseconds + 1));
                             Console.WriteLine();
                         }
                         for (int traverser = 0; traverser < Global.nofPlayers; traverser++) // traverser 
@@ -157,11 +140,12 @@ namespace Poker_MCCFRM
                             {
                                 trainer.TraverseMCCFR(traverser, t);
                             }
-                            if (t % SaveToDiskInterval == 0 && index == 0) // allow only one thread to do saving
-                            {
-                                SaveToFile();
-                            }
                         }
+                        if (t % SaveToDiskInterval == 0 && index == 0) // allow only one thread to do saving
+                        {
+                            SaveToFile();
+                        }
+
                         // discount all infosets (for all players)
                         if (t < LCFRThreshold && t % DiscountInterval == 0 && index == 0) // allow only one thread to do discounting
                         {
@@ -170,7 +154,62 @@ namespace Poker_MCCFRM
                         }
                     }
                 });
-            
+
+        }
+        private static void WritePlotStatistics(float bbWins)
+        {
+
+            // #################################### WRITE PLOTTING STATISTICS ##########################################
+
+            using (StreamWriter file = new StreamWriter("progress.txt", true))
+            {
+                file.WriteLine(Math.Round(bbWins, 2));
+            }
+        }
+        private static void SaveToFile_d()
+        {
+            Console.WriteLine("Saving dictionary to file {0}", "nodeMap_d.txt");
+
+            using FileStream fs = File.OpenWrite("nodeMap.txt");
+            using BinaryWriter writer = new BinaryWriter(fs);
+            foreach (var pair in Global.nodeMapBaseline)
+            {
+                byte[] bytes = Encoding.ASCII.GetBytes(pair.Key);
+
+                writer.Write(bytes.Length);
+                writer.Write(bytes);
+
+                bytes = SerializeToBytes(pair.Value);
+                writer.Write(bytes.Length);
+                writer.Write(bytes);
+            }
+        }
+        private static void LoadFromFile_d()
+        {
+            if (!File.Exists("nodeMap_d.txt"))
+                return;
+            Console.WriteLine("Loading nodes from file nodeMap_d.txt...");
+            using FileStream fs = File.OpenRead("nodeMap_d.txt");
+            using BinaryReader reader = new BinaryReader(fs);
+            Global.nodeMapBaseline = new ConcurrentDictionary<string, Infoset>();
+
+            try
+            {
+                while (true)
+                {
+                    int keyLength = reader.ReadInt32();
+                    byte[] key = reader.ReadBytes(keyLength);
+                    string keyString = Encoding.ASCII.GetString(key);
+                    int valueLength = reader.ReadInt32();
+                    byte[] value = reader.ReadBytes(valueLength);
+                    Infoset infoset = Deserialize(value);
+                    Global.nodeMapBaseline.TryAdd(keyString, infoset);
+                }
+            }
+            catch (EndOfStreamException e)
+            {
+                return;
+            }
         }
         private static void SaveToFile()
         {
@@ -185,15 +224,21 @@ namespace Poker_MCCFRM
                 writer.Write(bytes.Length);
                 writer.Write(bytes);
 
-                bytes = SerializeToBytes(pair.Value);
-                writer.Write(bytes.Length);
-                writer.Write(bytes);
+                //bytes = SerializeToBytes(pair.Value);
+
+                writer.Write(pair.Value.actionCounter.Length);
+                for (int i = 0; i < pair.Value.actionCounter.Length; i++)
+                    writer.Write(pair.Value.actionCounter[i]);
+
+                for (int i = 0; i < pair.Value.regret.Length; i++)
+                    writer.Write(pair.Value.regret[i]);
             }
         }
         private static void LoadFromFile()
         {
             if (!File.Exists("nodeMap.txt"))
                 return;
+            Console.WriteLine("Loading nodes from file nodeMap.txt...");
             using FileStream fs = File.OpenRead("nodeMap.txt");
             using BinaryReader reader = new BinaryReader(fs);
             Global.nodeMap = new ConcurrentDictionary<string, Infoset>();
@@ -206,8 +251,16 @@ namespace Poker_MCCFRM
                     byte[] key = reader.ReadBytes(keyLength);
                     string keyString = Encoding.ASCII.GetString(key);
                     int valueLength = reader.ReadInt32();
-                    byte[] value = reader.ReadBytes(valueLength);
-                    Infoset infoset = Deserialize(value);
+
+                    Infoset infoset = new Infoset(valueLength);
+                    for (int i = 0; i < valueLength; i++)
+                    {
+                        infoset.actionCounter[i] = reader.ReadInt32();
+                    }
+                    for (int i = 0; i < valueLength; i++)
+                    {
+                        infoset.regret[i] = reader.ReadInt32();
+                    }
                     Global.nodeMap.TryAdd(keyString, infoset);
                 }
             }

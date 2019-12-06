@@ -10,6 +10,9 @@
         RAISE1,
         RAISE2,
         RAISE3,
+        RAISE4,
+        RAISE5,
+        RAISE6,
         ALLIN
     }
 }

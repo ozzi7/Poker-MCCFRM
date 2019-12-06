@@ -41,9 +41,11 @@ namespace Poker_MCCFRM
         public int lastPlayer = 1;
         public int minRaise = Global.BB; // see https://poker.stackexchange.com/questions/2729/what-is-the-min-raise-and-min-reraise-in-holdem-no-limit#targetText=The%20minimum%20raise%20is%20going,blind%20and%20then%20raising%20%242.
         public bool isBettingOpen = false;
-
+        public int actionCount = -1;
         public string infosetString;
+        public bool infosetStringGenerated = false;
         public List<ACTION> history = new List<ACTION>();
+
         public ACTION[] lastActions = new ACTION[Global.nofPlayers];
 
         public int GetNextPlayer()
@@ -79,7 +81,8 @@ namespace Poker_MCCFRM
         {
             // does not include all-in players
             int count = 0;
-            for (int i = 0; i < Global.nofPlayers; i++) {
+            for (int i = 0; i < Global.nofPlayers; i++)
+            {
                 if (isPlayerIn[i] == true && lastActions[i] != ACTION.ALLIN)
                     count++;
             }
@@ -100,6 +103,10 @@ namespace Poker_MCCFRM
             throw new NotImplementedException();
         }
         public virtual Infoset GetInfoset()
+        {
+            throw new NotImplementedException();
+        }
+        public virtual Infoset GetInfosetSecondary()
         {
             throw new NotImplementedException();
         }
@@ -303,7 +310,7 @@ namespace Poker_MCCFRM
                 {
                     throw new Exception("We just dealt new cards but only 1 player has any actions left");
                 }
-                if (bettingRound < 3 && GetNumberOfAllInPlayers() >= 2 )
+                if (bettingRound < 3 && GetNumberOfAllInPlayers() >= 2)
                 {
                     // directly go to next chance node
                     children.Add(new ChanceState(newBettingRound, GetNumberOfAllInPlayers(), stacks,
@@ -311,7 +318,7 @@ namespace Poker_MCCFRM
                 }
                 else
                 {
-                    children.Add(new TerminalState(stacks, bets, history, 
+                    children.Add(new TerminalState(stacks, bets, history,
                         playerCardsNew, tableCardsNew, lastActions, isPlayerIn));
                 }
             }
@@ -411,7 +418,7 @@ namespace Poker_MCCFRM
                 {
                     List<ACTION> newHistory = new List<ACTION>(history);
                     int[] newStacks = new int[Global.nofPlayers];
-                    Array.Copy(stacks, newStacks,Global.nofPlayers);
+                    Array.Copy(stacks, newStacks, Global.nofPlayers);
                     int[] newBets = new int[Global.nofPlayers];
                     Array.Copy(bets, newBets, Global.nofPlayers);
 
@@ -634,19 +641,23 @@ namespace Poker_MCCFRM
                 }
             }
 
-            if (stacks.Sum() + bets.Sum() != Global.buyIn*Global.nofPlayers)
+            if (stacks.Sum() + bets.Sum() != Global.buyIn * Global.nofPlayers)
             {
                 throw new Exception("Impossible chip counts");
-            } 
+            }
         }
         public int GetValidActionsCount()
         {
+            if (actionCount != -1)
+                return actionCount;
+
             if (children.Count != 0)
             {
-                return children.Count;
+                actionCount = children.Count;
             }
             else
-                return GetValidActions().Count();
+                actionCount = GetValidActions().Count();
+            return actionCount;
         }
         public List<ACTION> GetValidActions()
         {
@@ -720,7 +731,66 @@ namespace Poker_MCCFRM
             // Cards of player whose turn it is
             // community cards
 
-            if (infosetString == null)
+            if (infosetStringGenerated == false)
+            {
+                string historyString = string.Join("", history);
+
+                List<int> cards = new List<int>
+                {
+                    Card.GetIndexFromBitmask(playerCards[playerToMove].Item1),
+                    Card.GetIndexFromBitmask(playerCards[playerToMove].Item2)
+                };
+                for (int i = 0; i < tableCards.Count; ++i)
+                {
+                    cards.Add(Card.GetIndexFromBitmask(tableCards[i]));
+                }
+                int[] cardArray = cards.ToArray();
+
+                string cardString = "";
+                if (tableCards.Count == 0)
+                {
+                    long index = Global.indexer_2.indexLast(cardArray);
+                    cardString += "P" + index;
+                }
+                else if (tableCards.Count == 3)
+                {
+                    long index = EMDTable.flopIndices[Global.indexer_2_3.indexLast(cardArray)];
+                    cardString += "F" + index;
+                }
+                else if (tableCards.Count == 4)
+                {
+                    long index = EMDTable.turnIndices[Global.indexer_2_4.indexLast(cardArray)];
+                    cardString += "T" + index;
+                }
+                else
+                {
+                    long index = OCHSTable.riverIndices[Global.indexer_2_5.indexLast(cardArray)];
+                    cardString += "R" + index;
+                }
+                infosetString = historyString + cardString;
+                infosetStringGenerated = true;
+            }
+
+            Global.nodeMap.TryGetValue(infosetString, out Infoset infoset);
+            if (infoset != null)
+            {
+                return infoset;
+            }
+            else
+            {
+                infoset = new Infoset(GetValidActionsCount());
+                Infoset infosetRet = Global.nodeMap.GetOrAdd(infosetString, infoset);
+                return infosetRet;
+            }
+        }
+        public override Infoset GetInfosetSecondary()
+        {
+            // Betting history R, A, CH, C, F
+            // Player whose turn it is // not needed?
+            // Cards of player whose turn it is
+            // community cards
+
+            if (infosetStringGenerated == false)
             {
                 string historyString = string.Join(",", history.ToArray());
 
@@ -734,7 +804,7 @@ namespace Poker_MCCFRM
                 int[] cardArray = cards.ToArray();
 
                 string cardString = "";
-                if(tableCards.Count == 0)
+                if (tableCards.Count == 0)
                 {
                     long index = Global.indexer_2.indexLast(cardArray);
                     cardString += "Preflop" + index.ToString();
@@ -757,7 +827,7 @@ namespace Poker_MCCFRM
                 infosetString = historyString + cardString;
             }
 
-            Global.nodeMap.TryGetValue(infosetString, out Infoset infoset);
+            Global.nodeMapBaseline.TryGetValue(infosetString, out Infoset infoset);
             if (infoset != null)
             {
                 return infoset;
@@ -765,7 +835,7 @@ namespace Poker_MCCFRM
             else
             {
                 infoset = new Infoset(GetValidActionsCount());
-                Infoset infosetRet = Global.nodeMap.GetOrAdd(infosetString, infoset);
+                Infoset infosetRet = Global.nodeMapBaseline.GetOrAdd(infosetString, infoset);
                 return infosetRet;
             }
         }

@@ -12,9 +12,9 @@ namespace Poker_MCCFRM
     /// <summary>
     /// Cluster the elements in the input array into k distinct buckets and return them 
     /// </summary>
-    class Kmeans
+    class KMeans
     {
-        public Kmeans(){ }
+        public KMeans() { }
         /// <summary>
         /// Returns an array where the element at index i contains the cluster entry associated with the entry
         /// </summary>
@@ -84,7 +84,7 @@ namespace Poker_MCCFRM
                                  double distance = GetEarthMoverDistance(data, centers, j, bestCenters[j]);
                                  int bestIndex = bestCenters[j];
                                  for (int m = 0; m < k; m++) // go through centers
-                                 { 
+                                 {
                                      if (centerCenterDistances[bestIndex, m] < 2 * distance && bestIndex != m)
                                      {
                                          double tempDistance = GetEarthMoverDistance(data, centers, j, m);
@@ -128,7 +128,7 @@ namespace Poker_MCCFRM
 
                     Console.WriteLine("Saving intermediate table to file...");
 
-                    FileHandler.SaveToFile(recordCenters, "EMDTable_temp_"+ filenameId+".txt");
+                    FileHandler.SaveToFile(recordCenters, "EMDTable_temp_" + filenameId + ".txt");
 
                     if (totalDistance < recordDistance)
                     {
@@ -193,7 +193,7 @@ namespace Poker_MCCFRM
                     centers = CalculateNewCenters(data, bestCenters, k);
                     skipInit = false;
                 }
-                float[,] centerCenterDistances = new float[k,k];
+                float[,] centerCenterDistances = new float[k, k];
 
                 while (distanceChanged)
                 {
@@ -214,12 +214,12 @@ namespace Poker_MCCFRM
                                     j < Util.GetWorkItemsIndices(data.Length, Global.NOF_THREADS, i).Item2; ++j)
                              { // go through all data
                                  // assume previous cluster was good, this is better for the triangle inequality
-                                 double distance = GetL2DistanceSquared(data, centers, j, bestCenters[j]); 
+                                 double distance = GetL2DistanceSquared(data, centers, j, bestCenters[j]);
                                  int bestIndex = bestCenters[j];
 
                                  for (int m = 0; m < k; m++) // go through centers
                                  {
-                                     if (centerCenterDistances[bestIndex, m] < 2 * distance && bestIndex != m)
+                                     if (centerCenterDistances[bestIndex, m] < 2 * (float)Math.Sqrt(distance) && bestIndex != m)
                                      {
                                          double tempDistance = GetL2DistanceSquared(data, centers, j, m);
                                          if (tempDistance < distance)
@@ -233,8 +233,8 @@ namespace Poker_MCCFRM
                                  threadDistance += Math.Sqrt(distance);
 
                                  iter++;
-                                 if(iter % 100000 == 0) 
-                                 { 
+                                 if (iter % 100000 == 0)
+                                 {
                                      Interlocked.Add(ref sharedLoopCounter, 100000);
                                      AddDouble(ref totalDistance, threadDistance);
                                      threadDistance = 0;
@@ -310,7 +310,7 @@ namespace Poker_MCCFRM
                 {
                     for (int m = 0; m < j; ++m)
                     {
-                        distances[j, m] = GetL2DistanceSquared(clusterCenters, clusterCenters, j, m);
+                        distances[j, m] = (float)Math.Sqrt(GetL2DistanceSquared(clusterCenters, clusterCenters, j, m));
                     }
                 }
             });
@@ -318,7 +318,7 @@ namespace Poker_MCCFRM
             {
                 for (int m = 0; m < j; ++m)
                 {
-                    distances[m, j] = distances[j,m];
+                    distances[m, j] = distances[j, m];
                 }
             }
         }
@@ -365,7 +365,7 @@ namespace Poker_MCCFRM
             while (numbersLeft > 0)
             {
                 int rand = RandomGen.Next(0, data.Count());
-                if(!numbers.Contains(rand))
+                if (!numbers.Contains(rand))
                 {
                     numbers.Add(rand);
                     numbersLeft--;
@@ -382,7 +382,7 @@ namespace Poker_MCCFRM
             // first get some samples of all data to speed up the algorithm
             int maxSamples = Math.Min(k * 100, data.Length);
             float[][] dataTemp = GetUniqueRandomNumbers(data, maxSamples);
-           
+
             float[,] centers = new float[k, dataTemp[0].Count()];
 
             // first cluster center is random
@@ -512,11 +512,11 @@ namespace Poker_MCCFRM
             for (int i = 0; i < a.Length - 4; i += 4)
             {
                 Vector4 v1 = new Vector4(a[i], a[i + 1], a[i + 2], a[i + 3]);
-                Vector4 v2 = v1*v1;
+                Vector4 v2 = v1 * v1;
                 a[i] = v2.X;
-                a[i+1] = v2.Y;
-                a[i+2] = v2.Z;
-                a[i+3] = v2.W;
+                a[i + 1] = v2.Y;
+                a[i + 2] = v2.Z;
+                a[i + 3] = v2.W;
             }
             for (int i = a.Length - a.Length % 4; i < a.Length; i++)
             {
@@ -554,19 +554,19 @@ namespace Poker_MCCFRM
             float emd = 0, totalDistance = 0;
             for (int i = 0; i < data.GetLength(1); i++)
             {
-                emd = (data[index1,i] + emd) - centers[index2, i];
+                emd = (data[index1, i] + emd) - centers[index2, i];
                 totalDistance += Math.Abs(emd);
             }
             return totalDistance;
         }
         private double GetL2DistanceSquared(float[][] data, float[,] centers, int index1, int index2)
-        {     
+        {
             double totalDistance = 0;
-            for (int i = 0; i < data[0].Length - 4; i +=4)
+            for (int i = 0; i < data[0].Length - 4; i += 4)
             {
-                Vector4 v1 = new Vector4(data[index1][i], data[index1][i+1], data[index1][i+2], data[index1][i+3]);
-                Vector4 v2 = new Vector4(centers[index2, i], centers[index2, i+1], centers[index2, i+2], centers[index2, i+3]);
-                totalDistance += (v1-v2).LengthSquared();
+                Vector4 v1 = new Vector4(data[index1][i], data[index1][i + 1], data[index1][i + 2], data[index1][i + 3]);
+                Vector4 v2 = new Vector4(centers[index2, i], centers[index2, i + 1], centers[index2, i + 2], centers[index2, i + 3]);
+                totalDistance += (v1 - v2).LengthSquared();
             }
             for (int i = data[0].Length - data[0].Length % 4; i < data[0].Length; i++) // if the histogram is not a multiple of 4
             {
@@ -580,13 +580,13 @@ namespace Poker_MCCFRM
             Vector4 v1, v2;
             for (int i = 0; i < data.GetLength(1) - 4; i += 4)
             {
-                v1 = new Vector4(data[index1,i], data[index1,i + 1], data[index1,i + 2], data[index1,i + 3]);
+                v1 = new Vector4(data[index1, i], data[index1, i + 1], data[index1, i + 2], data[index1, i + 3]);
                 v2 = new Vector4(centers[index2, i], centers[index2, i + 1], centers[index2, i + 2], centers[index2, i + 3]);
                 totalDistance += (v1 - v2).LengthSquared();
             }
             for (int i = data.GetLength(1) - data.GetLength(1) % 4; i < data.GetLength(1); i++) // if the histogram is not a multiple of 4
             {
-                totalDistance += (data[index1,i] - centers[index2, i]) * (double)(data[index1,i] - centers[index2, i]);
+                totalDistance += (data[index1, i] - centers[index2, i]) * (double)(data[index1, i] - centers[index2, i]);
             }
             return (float)totalDistance;
         }

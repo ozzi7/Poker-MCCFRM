@@ -42,7 +42,7 @@ namespace Poker_MCCFRM
                 Infoset infoset = gs.GetInfoset();
                 float[] sigma = infoset.CalculateStrategy();
                 int randomIndex = Util.SampleDistribution(sigma);
-                gs.CreateChildren(); 
+                gs.CreateChildren();
                 gs = gs.children[randomIndex];
                 infoset.actionCounter[randomIndex]++;
 
@@ -192,14 +192,13 @@ namespace Poker_MCCFRM
                     {
                         if (gs.tableCards.Count != 0)
                             Console.Write("Table Cards: ");
-                        List<Card> tableCards = new List<Card>();
                         for (int i = 0; i < gs.tableCards.Count; ++i)
                         {
                             new Card(gs.tableCards[i]).PrintBeautifulString();
                         }
                     }
                 }
-                else if(gs is PlayState)
+                else if (gs is PlayState)
                 {
                     Console.WriteLine();
                     Console.Write("Player {0}'s turn : ", gs.playerToMove);
@@ -209,29 +208,105 @@ namespace Poker_MCCFRM
                     int randomIndex = Util.SampleDistribution(sigma);
                     gs.CreateChildren();
                     gs = gs.children[randomIndex];
-                    Console.Write(gs.history[gs.history.Count-1]);
+                    Console.Write(gs.history[gs.history.Count - 1]);
                 }
             }
             Console.WriteLine();
             Console.Write("Rewards: ");
             for (int i = 0; i < Global.nofPlayers; ++i)
             {
-                Console.Write(gs.GetReward(i)+ " ");
+                Console.Write(gs.GetReward(i) + " ");
             }
             Console.WriteLine();
+        }
+        public float PlayOneGame_d(int mainPlayer, bool display)
+        {
+            ResetGame();
+            State gs = rootState;
+            bool first = true;
+            while (!(gs is TerminalState))
+            {
+                if (gs is ChanceState)
+                {
+                    // sample a from chance
+                    gs = gs.DoRandomAction();
+
+                    if (display)
+                        Console.WriteLine();
+
+                    if (first)
+                    {
+                        if (display)
+                            Console.Write("Player Cards: ");
+                        for (int i = 0; i < Global.nofPlayers; ++i)
+                        {
+                            List<Card> playerCards = new List<Card>();
+                            playerCards.Add(new Card(gs.playerCards[i].Item1));
+                            playerCards.Add(new Card(gs.playerCards[i].Item2));
+                            if (display)
+
+                                playerCards[0].PrintBeautifulString();
+                            if (display)
+
+                                playerCards[1].PrintBeautifulString(" ");
+                        }
+                        first = false;
+                    }
+                    else
+                    {
+                        if (gs.tableCards.Count != 0)
+                            if (display)
+                                Console.Write("Table Cards: ");
+                        for (int i = 0; i < gs.tableCards.Count; ++i)
+                        {
+                            if (display)
+                                new Card(gs.tableCards[i]).PrintBeautifulString();
+                        }
+                    }
+                }
+                else if (gs is PlayState)
+                {
+                    if (display)
+                        Console.WriteLine();
+                    if (display)
+                        Console.Write("Player {0}'s turn : ", gs.playerToMove);
+
+                    Infoset infoset;
+                    if (mainPlayer == gs.playerToMove)
+                    {
+                        infoset = gs.GetInfoset();
+                    }
+                    else
+                    {
+                        infoset = gs.GetInfosetSecondary();
+                    }
+
+                    float[] sigma = infoset.CalculateStrategy();
+
+                    int randomIndex = Util.SampleDistribution(sigma);
+                    gs.CreateChildren();
+                    gs = gs.children[randomIndex];
+                    if (display)
+                        Console.Write(gs.history[gs.history.Count - 1]);
+                }
+            }
+            if (display)
+                Console.WriteLine();
+            if (display)
+                Console.Write("Rewards: ");
+            for (int i = 0; i < Global.nofPlayers; ++i)
+            {
+                if (display)
+                    Console.Write(gs.GetReward(i) + " ");
+            }
+            if (display)
+                Console.WriteLine();
+            return gs.GetReward(mainPlayer);
         }
         private float TraverseMCCFR(State gs, int traverser, int iteration)
         {
             if (gs is TerminalState)
             {
-                if (iteration % 10000 == 0 && threadIndex == 0)
-                {
-                    Console.WriteLine(new Card(gs.playerCards[0].Item1).ToString() + "" + new Card(gs.playerCards[0].Item2).ToString() + ", " +
-                        new Card(gs.playerCards[1].Item1).ToString() + "" + new Card(gs.playerCards[1].Item2).ToString());
-                    Console.WriteLine(string.Join(",", gs.history.ToArray()));
-                    Console.WriteLine(gs.GetReward(0) + ", " + gs.GetReward(1));
-                    Console.WriteLine();
-                }
                 return gs.GetReward(traverser);
             }
             else if (!gs.IsPlayerInHand(traverser)) // we cant get the reward because this function is not implemented
@@ -297,7 +372,7 @@ namespace Poker_MCCFRM
             ResetGame();
             List<PlayState> gs = ((ChanceState)rootState).GetFirstActionStates();
 
-            for(int i = 0; i < gs[0].GetValidActions().Count;++i)
+            for (int i = 0; i < gs[0].GetValidActions().Count; ++i)
             {
                 if (gs[0].GetValidActions()[i] == ACTION.FOLD)
                 {
@@ -360,7 +435,7 @@ namespace Poker_MCCFRM
                     Console.Write(phi[i].ToString("0.00") + " ");
                     Console.ResetColor();
 
-                    if ((j+1) % 13 == 0)
+                    if ((j + 1) % 13 == 0)
                         Console.WriteLine();
                 }
 

@@ -1,4 +1,5 @@
-﻿using SnapCall;
+﻿using FASTER.core;
+using SnapCall;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
@@ -8,12 +9,12 @@ namespace Poker_MCCFRM
     public static class Global
     {
         // adjust threads to cpu
-        public const int NOF_THREADS = 24;
+        public const int NOF_THREADS = 1;
 
         // currently each round has the same raise values available
         // the values are multiples of the current pot
         // if new elements are added then the code must be adjusted in other places currently TODO
-        public static List<float> raises = new List<float>() { 2f, 3f, 5.0f }; 
+        public static List<float> raises = new List<float>() { 1f, 1.5f, 2.0f, 3.0f, 5.0f, 10.0f };
         public const int buyIn = 200;
         public const int nofPlayers = 2; // !=2 not tested yet TODO
         public const int C = -100000;
@@ -37,7 +38,7 @@ namespace Poker_MCCFRM
         // this is used to create the nofOpponentClusters, it can be increased (default 50)
         // with little time penalty because the clustering for 169 hands is very fast
         public const int preflopHistogramSize = 100;
-        
+
         // dont change
         public static HandIndexer indexer_2;
         public static HandIndexer indexer_2_3;
@@ -48,7 +49,9 @@ namespace Poker_MCCFRM
         public static HandIndexer indexer_2_5_2;
         public static Evaluator handEvaluator;
 
-        public static ConcurrentDictionary<string, Infoset> nodeMap = new ConcurrentDictionary<string, Infoset>(NOF_THREADS,1000000);
+        public static ConcurrentDictionary<string, Infoset> nodeMap = new ConcurrentDictionary<string, Infoset>(Global.NOF_THREADS, 1000000);
+        public static ConcurrentDictionary<string, Infoset> nodeMapBaseline = new ConcurrentDictionary<string, Infoset>(Global.NOF_THREADS, 1000000);
+
         public static ThreadLocal<Deck> Deck = new ThreadLocal<Deck>(() => new Deck());
     }
 }

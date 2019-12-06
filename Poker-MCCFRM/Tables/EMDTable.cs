@@ -257,7 +257,7 @@ namespace Poker_MCCFRM
         {
             // k-means clustering
             DateTime start = DateTime.UtcNow;
-            Kmeans kmeans = new Kmeans();
+            KMeans kmeans = new KMeans();
             int[] indices = FileHandler.LoadFromFileIndex("EMDTableTurn_temp.txt");
             turnIndices = kmeans.ClusterEMD(histogramsTurn, Global.nofTurnBuckets, 1, indices);
 
@@ -287,7 +287,7 @@ namespace Poker_MCCFRM
         {
             // k-means clustering
             DateTime start = DateTime.UtcNow;
-            Kmeans kmeans = new Kmeans();
+            KMeans kmeans = new KMeans();
             int[] indices = FileHandler.LoadFromFileIndex("EMDTableFlop_temp.txt");
             flopIndices = kmeans.ClusterEMD(histogramsFlop, Global.nofFlopBuckets, 1, indices);
 
