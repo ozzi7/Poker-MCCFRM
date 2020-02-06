@@ -118,12 +118,6 @@ namespace Poker_MCCFRM
                     totalDistance /= data.Length;
                     distanceChanged = !(totalDistance == lastDistance);
 
-                    // check stopping criteria
-                    if (totalDistance == lastDistance)
-                    {
-                        distanceChanged = false;
-                    }
-
                     double diff = lastDistance - totalDistance;
 
                     Console.WriteLine("Saving intermediate table to file...");
