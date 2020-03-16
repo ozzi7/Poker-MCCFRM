@@ -9,12 +9,12 @@ namespace Poker_MCCFRM
     public static class Global
     {
         // adjust threads to cpu
-        public const int NOF_THREADS = 1;
+        public const int NOF_THREADS = 12;
 
         // currently each round has the same raise values available
         // the values are multiples of the current pot
         // if new elements are added then the code must be adjusted in other places currently TODO
-        public static List<float> raises = new List<float>() { 1f, 1.5f, 2.0f, 3.0f, 5.0f, 10.0f };
+        public static List<float> raises = new List<float>() { 1f, 1.5f, 2.0f}; // fraction of current pot
         public const int buyIn = 200;
         public const int nofPlayers = 2; // !=2 not tested yet TODO
         public const int C = -100000;

@@ -433,12 +433,19 @@ namespace Poker_MCCFRM
                     if (actualRaise < minRaise || raise >= stacks[playerToMove]) continue;
 
                     // valid raise, if stack is equal it would be an all in
+                    // TODO: dont hardcode this
                     if (i == 0)
                         newHistory.Add(ACTION.RAISE1);
                     if (i == 1)
                         newHistory.Add(ACTION.RAISE2);
                     if (i == 2)
                         newHistory.Add(ACTION.RAISE3);
+                    //if (i == 3) 
+                    //    newHistory.Add(ACTION.RAISE4);
+                    //if (i == 4)
+                    //    newHistory.Add(ACTION.RAISE5);
+                    //if (i == 5)
+                    //    newHistory.Add(ACTION.RAISE6);
 
                     newStacks[playerToMove] -= raise;
                     newBets[playerToMove] += raise;

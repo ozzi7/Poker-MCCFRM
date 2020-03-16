@@ -12,9 +12,9 @@ namespace Poker_MCCFRM
     /// <summary>
     /// Cluster the elements in the input array into k distinct buckets and return them 
     /// </summary>
-    class KMeans
+    class Kmeans
     {
-        public KMeans() { }
+        public Kmeans() { }
         /// <summary>
         /// Returns an array where the element at index i contains the cluster entry associated with the entry
         /// </summary>

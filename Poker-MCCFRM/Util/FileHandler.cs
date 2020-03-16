@@ -32,7 +32,7 @@ namespace Poker_MCCFRM
             BinaryWriter bin = new BinaryWriter(File.Open(filename, FileMode.Create));
             int dim1 = data.Length;
 
-            bin.Write(dim1);
+            bin.Write(dim1); // remove for cpp version
             for (int i = 0; i < dim1; ++i)
             { 
                 bin.Write(data[i]);

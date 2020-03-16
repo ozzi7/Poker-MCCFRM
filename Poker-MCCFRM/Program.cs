@@ -69,8 +69,8 @@ namespace Poker_MCCFRM
             long PruneThreshold = 20000000 / Global.NOF_THREADS; // bb rounds after this time we stop checking all actions, 200 minutes
             long LCFRThreshold = 20000000 / Global.NOF_THREADS; // bb rounds when to stop discounting old regrets, no clue what it should be
             long DiscountInterval = 1000000 / Global.NOF_THREADS; // bb rounds, discount values periodically but not every round, 10 minutes
-            long SaveToDiskInterval = 5000000 / Global.NOF_THREADS; // not used currently during trial runs
-            long testGamesInterval = 100000 / Global.NOF_THREADS; // not used currently during trial runs
+            long SaveToDiskInterval = 1000000 / Global.NOF_THREADS;
+            long testGamesInterval = 100000 / Global.NOF_THREADS;
 
             long sharedLoopCounter = 0;
 
@@ -89,10 +89,11 @@ namespace Poker_MCCFRM
                         if (t % 1000 == 0)
                         {
                             Interlocked.Add(ref sharedLoopCounter, 1000);
+                            Console.WriteLine("Training steps " + sharedLoopCounter);
                         }
+
                         if (t % testGamesInterval == 0 && index == 0) // implement progress bar later
                         {
-                            Console.WriteLine("Training steps " + sharedLoopCounter);
                             trainer.PrintStartingHandsChart();
                             trainer.PrintStatistics(sharedLoopCounter);
 
@@ -102,18 +103,18 @@ namespace Poker_MCCFRM
                                 trainer.PlayOneGame();
                             }
 
-                            Console.WriteLine("Sample games (against baseline)");
-                            float mainScore = 0.0f;
-                            for (int x = 0; x < 10000; x++)
-                            {
-                                if (x < 20)
-                                {
-                                    mainScore += trainer.PlayOneGame_d(x % 2, true);
-                                }
-                                mainScore += trainer.PlayOneGame_d(x % 2, false);
-                            }
-                            WritePlotStatistics((mainScore / 10000) / Global.BB);
-                            Console.WriteLine("BBs per hand: {0}", (mainScore / 10000) / Global.BB);
+                            //Console.WriteLine("Sample games (against baseline)");
+                            //float mainScore = 0.0f;
+                            //for (int x = 0; x < 100; x++) // 100 games not statistically significant
+                            //{
+                            //    if (x < 20)
+                            //    {
+                            //        mainScore += trainer.PlayOneGame_d(x % 2, true);
+                            //    }
+                            //    mainScore += trainer.PlayOneGame_d(x % 2, false);
+                            //}
+                            //WritePlotStatistics((mainScore / 10000) / Global.BB);
+                            //Console.WriteLine("BBs per hand: {0}", (mainScore / 10000) / Global.BB);
 
                             Console.WriteLine("Iterations per second: {0}", 1000 * sharedLoopCounter / (stopwatch.ElapsedMilliseconds + 1));
                             Console.WriteLine();
@@ -154,13 +155,9 @@ namespace Poker_MCCFRM
                         }
                     }
                 });
-
         }
         private static void WritePlotStatistics(float bbWins)
         {
-
-            // #################################### WRITE PLOTTING STATISTICS ##########################################
-
             using (StreamWriter file = new StreamWriter("progress.txt", true))
             {
                 file.WriteLine(Math.Round(bbWins, 2));
