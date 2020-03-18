@@ -106,7 +106,7 @@ namespace Poker_MCCFRM
                              {
                                  continue;
                              }
-                             deadCardMask |= (1L << card1Opponent);
+                             //deadCardMask |= (1L << card1Opponent); // card2Opponent is anyway > card1Opponent
                              for (int card2Opponent = card1Opponent + 1; card2Opponent < 52; card2Opponent++)
                              {
                                  if (((1L << card2Opponent) & deadCardMask) != 0)
