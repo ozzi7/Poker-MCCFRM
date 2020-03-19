@@ -49,10 +49,6 @@ namespace Poker_MCCFRM
             Console.Write("Creating 2 & 3 & 1 & 1 card index... ");
             Global.indexer_2_3_1_1 = new HandIndexer(new int[4] { 2, 3, 1, 1 });
             Console.WriteLine(Global.indexer_2_3_1_1.roundSize[3] + " non-isomorphic hands found");
-
-            Console.Write("Creating 2 & 5 & 2 card index... ");
-            Global.indexer_2_5_2 = new HandIndexer(new int[3] { 2, 5, 2 });
-            Console.WriteLine(Global.indexer_2_5_2.roundSize[2] + " non-isomorphic hands found");
         }
         private static void CalculateInformationAbstraction()
         {
