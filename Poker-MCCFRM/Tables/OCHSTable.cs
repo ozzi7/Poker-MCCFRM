@@ -14,7 +14,7 @@ namespace Poker_MCCFRM
     /// cluster starting hands (169) into 8 buckets using earth mover's distance (monte carlo sampling)
     /// then, for each river private state calculate winning chance against each of the 8 buckets (opponent hands)
     /// so we have 123156254 river combinations (2 + 5 cards), which need to be checked against the opponent cards
-    /// then we use k means with L2 distance metric to cluster all these "histograms" into x buckets
+    /// then we use k means with L2 distance metric to cluster all these "histograms" into k buckets
     /// 
     /// </summary>
     public static class OCHSTable
@@ -257,14 +257,12 @@ namespace Poker_MCCFRM
                              {
                                  continue;
                              }
-                             deadCardMask |= (1L << card1Opponent);
                              for (int card2Opponent = card1Opponent + 1; card2Opponent < 52; card2Opponent++)
                              {
                                  if (((1L << card2Opponent) & deadCardMask) != 0)
                                  {
                                      continue;
                                  }
-                                 deadCardMask |= (1L << card2Opponent);
 
                                  ulong handSevenCards = (1uL << cards[0]) + (1uL << cards[1]) + (1uL << cards[2]) + (1uL << cards[3]) + (1uL << cards[4]) +
                                  +(1uL << cards[5]) + (1uL << cards[6]);
@@ -274,14 +272,9 @@ namespace Poker_MCCFRM
                                  int valueSevenCards = Global.handEvaluator.Evaluate(handSevenCards);
                                  int valueOpponentSevenCards = Global.handEvaluator.Evaluate(handOpponentSevenCards);
 
-                                 int winDrawLoss = (valueSevenCards > valueOpponentSevenCards ? 0 : valueSevenCards == valueOpponentSevenCards ? 1 : 2);
-
                                  long indexPreflop = Global.indexer_2.indexLast(new int[] { card1Opponent, card2Opponent });
-                                 histogramsRiver[i][preflopIndices[indexPreflop]] += winDrawLoss == 0 ? 1.0f : winDrawLoss == 0 ? 0.5f : 0.0f;
-
-                                 deadCardMask &= ~(1L << card2Opponent);
+                                 histogramsRiver[i][preflopIndices[indexPreflop]] += valueSevenCards > valueOpponentSevenCards ? 1 : (valueSevenCards == valueOpponentSevenCards) ? 0.5f : 0.0f;
                              }
-                             deadCardMask &= ~(1L << card1Opponent);
                          }
 
                          iter++;

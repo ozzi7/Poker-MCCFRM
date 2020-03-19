@@ -461,8 +461,6 @@ namespace Poker_MCCFRM
                         index = RandomGen.Next(0, dataTemp.Count());
                         centerIndices.Add(index);
                         CopyArray(dataTemp, centers, index, c);
-
-                        continue;
                     }
                     else
                     {

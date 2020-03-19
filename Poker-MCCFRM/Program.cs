@@ -144,7 +144,8 @@ namespace Poker_MCCFRM
                         }
                         if (t % SaveToDiskInterval == 0 && index == 0) // allow only one thread to do saving
                         {
-                            SaveToFile();
+                            Console.WriteLine("Saving nodeMap to disk disabled!");
+                            //SaveToFile();
                         }
 
                         // discount all infosets (for all players)
