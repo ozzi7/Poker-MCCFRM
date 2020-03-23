@@ -190,6 +190,8 @@ namespace Poker_MCCFRM
                             deadCardMask |= (1L << cardTurn);
                             for (int cardRiver = cardTurn+1; cardRiver < 52; cardRiver++)
                             {
+                                countTable = new int[3, 3];
+
                                 if (((1L << cardRiver) & deadCardMask) != 0)
                                 {
                                     continue;
