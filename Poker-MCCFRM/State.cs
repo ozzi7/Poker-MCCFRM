@@ -290,11 +290,11 @@ namespace Poker_MCCFRM
                     tableCardsNew.Add(Global.Deck.Value.Draw(Global.nofPlayers * 2 + 2));
                     break;
                 case 2: // deal turn
-                    //Global.Deck.Value.Shuffle(Global.nofPlayers * 2 + 3);
+                    Global.Deck.Value.Shuffle(Global.nofPlayers * 2 + 3);
                     tableCardsNew.Add(Global.Deck.Value.Draw(Global.nofPlayers * 2 + 3));
                     break;
                 case 3: // deal river
-                    //Global.Deck.Value.Shuffle(Global.nofPlayers * 2 + 4);
+                    Global.Deck.Value.Shuffle(Global.nofPlayers * 2 + 4);
                     tableCardsNew.Add(Global.Deck.Value.Draw(Global.nofPlayers * 2 + 4));
                     break;
             }

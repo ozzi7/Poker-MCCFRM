@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 
@@ -497,6 +498,37 @@ namespace Poker_MCCFRM
             }
             Console.WriteLine("Number of infosets: " + Global.nodeMap.Count);
             Console.WriteLine("Number of training iterations: " + iterations);
+        }
+        public void EnumerateActionSpace(State gs)
+        {
+            if (gs is TerminalState)
+            {
+                using (StreamWriter writer = File.AppendText("actionSpace.txt"))
+                {
+                    string outstring = string.Join("", gs.history);
+                    outstring= outstring.Replace("RAISE1", "R0");
+                    outstring = outstring.Replace("RAISE2", "R1");
+                    outstring = outstring.Replace("RAISE3", "R2");
+                    outstring = outstring.Replace("ALLIN", "A");
+                    outstring = outstring.Replace("CALL", "C");
+                    outstring = outstring.Replace("CHECK", "C");
+                    outstring = outstring.Replace("FOLD", "F");
+                    writer.WriteLine(outstring);
+                }
+            }
+            else
+            {
+                gs.CreateChildren();
+
+                for (int i = 0; i < gs.children.Count(); ++i)
+                {
+                    EnumerateActionSpace(gs.children[i]);
+                }
+            }
+        }
+        public void EnumerateActionSpace()
+        {
+            EnumerateActionSpace(rootState);
         }
     }
 }

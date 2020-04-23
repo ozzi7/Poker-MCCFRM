@@ -29,7 +29,7 @@ namespace Poker_MCCFRM
         public const int nofTurnBuckets = 1000;
         public const int nofFlopBuckets = 1000;
         // 100k or even 1 million shouldn't take too much time compared to the rest of the information abstraction
-        public const int nofMCSimsPerPreflopHand = 5000;
+        public const int nofMCSimsPerPreflopHand = 500;
         // for the river, determines the river histogram size (in theory could be up to 169 but will be very slow) default 8
         public const int nofOpponentClusters = 16;
         public const int flopHistogramSize = 50;

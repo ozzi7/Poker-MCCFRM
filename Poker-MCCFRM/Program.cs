@@ -73,6 +73,9 @@ namespace Poker_MCCFRM
             LoadFromFile();
             LoadFromFile_d();
 
+            Trainer trainer = new Trainer(0);
+            trainer.EnumerateActionSpace();
+
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             Parallel.For(0, Global.NOF_THREADS,
