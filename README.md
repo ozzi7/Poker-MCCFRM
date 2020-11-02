@@ -17,10 +17,10 @@ A poker bot for NL Texas Hold'em supporting any number of players and trained us
 - [x] Generate information abstractions (preflop, flop, turn and river tables)
 - [x] Train on NL Texas Hold'em with a variable number of players
 - [x] Display some training games and the starting hand action probabilities
-- [ ] Live search and live play
+- [x] Live search and live play
 - [ ] Visualization of the poker table
 - [x] Allow player vs AI games
-- [ ] Different raise sizes in different game rounds
+- [x] Different raise sizes in different game rounds
 
 ### Prerequisites
 
