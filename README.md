@@ -1,7 +1,6 @@
 # Poker Bot
 
 <img src="media/warning-markup.svg?">
-
 A poker bot for NL Texas Hold'em supporting any number of players and trained using Monte-Carlo Counterfactual Regret Minimization. The code more or less follows the [research paper](https://science.sciencemag.org/content/365/6456/885) on the poker bot Pluribus released by Facebook's AI Lab and Carnegie Mellon University in July 2019.
 
 * **Poker-MCCFR repository**: Written in C#, can be used to generate the tables and train them. More than two players are not tested and some additional code changes are needed to set arbitrary raise sizes. **Discontinued**. 
@@ -63,7 +62,7 @@ Note that imperfect recall is used after the flop.
 #### Verification of hand indexer and performance benchmark
 Cards such as AdKd and AcKc are suit isomorphic and hence can be treated as identical during training. For mapping poker hands to their canonical equivalent an algorithm developed by Kevin Waugh is used. More information can be found in the respective research paper ["Fast and Optimal Hand Isomorphism Algorithm"](https://www.aaai.org/ocs/index.php/WS/AAAIW13/paper/download/7042/6491). 
 
-![Graph](media/hand_indexer_verification.png)
+![Graph](media/hand_indexer_verification.png?)
 
 #### Clustering preflop hands
 Starting hands are clustered into 16 (or as specified) opponent hand clusters by generating monte carlo samples up until the river and playing out against all possible opponent hands. The resulting equity histograms are clustered using earth mover's distance (EMD). These 16 clusters are helpful to reduce the time it takes to cluster the river. Note that the 169 possible preflop hands themselves are not clustered during training. In the image below the top left corner corresponds to the cards 22, the bottom right corner to the cards AA and all cards on the right side of the connecting diagonal are suited.
