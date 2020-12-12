@@ -76,9 +76,9 @@ For each of the suit isomorphic river hand combinations (2 + 5 cards) an equity 
 ![Graph](media/sample_river_histograms.png)
 
 #### Clustering the river, turn and flop histograms
-River histograms are clustered using k-means++ with the Euclidean metric (L2) and the turn and flop histograms with earth mover's distance. A sample of three clusters for the river can be seen below. The first two cards are the player's starting hands. Cluster 0, for example, groups hands together where the player's best hand is strong (a two pair, three-of-a-kind or a straight) but the opponent can potentially win with a flush.  
+River histograms are clustered using k-means++ with the Euclidean metric (L2) and the turn and flop histograms with earth mover's distance. A sample of some clusters can be seen below. The first two cards are the player's starting hands.   
 
-![Graph](media/sample_river_clusters.png)
+![Graph](media/sample_clusters.png)
 
 #### Training
 An example training run with two players, a buy-in of 200 each, a big blind of 2 and a small blind of 1 is shown below. Raises are set to 1, 2 and 3 times the pot for all betting rounds. A strong information abstraction of 1000 clusters for the flop, turn and river is used (169-1000-1000-1000).
