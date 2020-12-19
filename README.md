@@ -16,7 +16,7 @@ The code more or less follows the [research paper](https://science.sciencemag.or
 
 ## Poker-MCCFR-CPP repository (C++)
 
-### Open tasks
+### Capabilities
 - [x] Generate information abstractions (preflop, flop, turn and river tables)
 - [x] Train on NL Texas Hold'em with a variable number of players
 - [x] Display some training games and the starting hand action probabilities
@@ -30,7 +30,7 @@ The code more or less follows the [research paper](https://science.sciencemag.or
 * Windows with Visual Studio and c++17 or later 
 * Clang compiler needed for the hand indexer library, install it using the VS installer
 * Windows SDK Version 10 (others untested)
-* A lot of RAM (depends on the number of players and the information/action abstraction sizes)
+* A lot of RAM, 256+ GB suggested for 6+ players but depends on the the chosen information & action abstractions size
 
 ### Compilation
 
@@ -38,7 +38,7 @@ The code more or less follows the [research paper](https://science.sciencemag.or
 * Run the generated executable
 
 ### Configuration
-* Most parameters can be found in the file *params.h* or *params.cpp*
+* Most parameters can be found in the files *params.h* or *params.cpp*
 ```
 // Hardware
 nofThreads : The maximum number of threads used
