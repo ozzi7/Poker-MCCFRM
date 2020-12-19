@@ -1,7 +1,9 @@
 # Poker Bot
 
 <img src="media/warning-markup.svg?">
-A poker bot for NL Texas Hold'em supporting any number of players and trained using Monte-Carlo Counterfactual Regret Minimization. The code more or less follows the [research paper](https://science.sciencemag.org/content/365/6456/885) on the poker bot Pluribus released by Facebook's AI Lab and Carnegie Mellon University in July 2019.
+
+A poker bot for NL Texas Hold'em supporting any number of players and trained using Monte-Carlo Counterfactual Regret Minimization. 
+The code more or less follows the [research paper](https://science.sciencemag.org/content/365/6456/885) on the poker bot Pluribus released by Facebook's AI Lab and Carnegie Mellon University in July 2019.
 
 * **Poker-MCCFR repository**: Written in C#, can be used to generate the tables and train them. More than two players are not tested and some additional code changes are needed to set arbitrary raise sizes. **Discontinued**. 
 * **Poker-MCCFR-CPP repository**: C++ version, much faster histogram generation, k-means++ clustering and training. 
