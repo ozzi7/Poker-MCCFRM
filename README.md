@@ -21,7 +21,8 @@ The code more or less follows the [research paper](https://science.sciencemag.or
 - [x] Train on NL Texas Hold'em with a variable number of players
 - [x] Display some training games and the starting hand action probabilities
 - [x] Live search and live play
-- [ ] Visualization of the poker table
+- [x] Qt visualization of the poker table for heads-up
+- [ ] Qt visualization of the poker table for 6 players
 - [x] Allow player vs AI games
 - [x] Different raise sizes in different game rounds
 
@@ -30,7 +31,8 @@ The code more or less follows the [research paper](https://science.sciencemag.or
 * Windows with Visual Studio and c++17 or later 
 * Clang compiler needed for the hand indexer library, install it using the VS installer
 * Windows SDK Version 10 (others untested)
-* A lot of RAM, 256+ GB suggested for 6+ players but depends on the the chosen information & action abstractions size
+* Ideally > 128GB RAM (depends on the number of players and the information/action abstraction sizes)
+* QT library if using the graphical interface
 
 ### Compilation
 
